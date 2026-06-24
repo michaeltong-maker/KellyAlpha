@@ -1,0 +1,18 @@
+{
+  "name": "AlphaWalk",
+  "short_name": "AlphaWalk",
+  "description": "AI agents that watch the markets for you — chat, hire, and stay in the loop.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF8F0",
+  "theme_color": "#F4EFE6",
+  "categories": ["finance", "productivity", "news"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg",     "sizes": "any",     "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

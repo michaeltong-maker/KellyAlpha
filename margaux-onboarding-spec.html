@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AlphaWalk · Margaux — Onboarding Journey Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-900: oklch(0.17 0.006 280);
+    --ink-700: oklch(0.34 0.006 280);
+    --ink-500: oklch(0.52 0.005 280);
+    --ink-300: oklch(0.72 0.004 285);
+    --ink-200: oklch(0.88 0.003 90);
+    --ink-100: oklch(0.93 0.004 90);
+    --ink-50:  oklch(0.965 0.004 90);
+    --paper:   oklch(0.972 0.006 85);
+    --card:    oklch(0.995 0.003 85);
+    --accent:  oklch(0.52 0.165 278);
+    --accent-2:oklch(0.585 0.155 308);
+    --accent-soft: oklch(0.955 0.028 290);
+    --on-accent: oklch(0.99 0.004 290);
+    --on-brand: oklch(0.985 0.004 85);
+    --success: oklch(0.60 0.12 150);
+    --font-display: 'Newsreader', Georgia, serif;
+    --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --tracking-label: 0.16em;
+    --tracking-logo: 0.28em;
+    --ease: cubic-bezier(0.16,1,0.3,1);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink-900);
+    font-family:var(--font-sans); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 24px 120px;}
+
+  /* ---- masthead ---- */
+  .masthead{padding:64px 0 40px; border-bottom:1px solid var(--ink-200); margin-bottom:8px;}
+  .brandrow{display:flex; align-items:center; gap:14px;}
+  .monobox{width:34px;height:34px;border:1.5px solid var(--ink-900);border-radius:4px;display:flex;align-items:center;justify-content:center;}
+  .stride{display:flex;align-items:flex-end;gap:2.5px;height:16px;}
+  .stride i{display:block;width:3px;background:var(--accent);border-radius:1px;}
+  .stride i:nth-child(1){height:7px;} .stride i:nth-child(2){height:11px;} .stride i:nth-child(3){height:16px;}
+  .wordmark{font-family:var(--font-sans);font-weight:500;text-transform:uppercase;letter-spacing:var(--tracking-logo);font-size:15px;color:var(--ink-900);}
+  .kicker{font-family:var(--font-sans);text-transform:uppercase;letter-spacing:var(--tracking-label);font-size:11px;color:var(--ink-500);font-weight:500;}
+  h1.title{font-family:var(--font-display);font-weight:500;font-size:clamp(34px,6vw,52px);line-height:1.05;letter-spacing:-0.01em;margin:22px 0 14px;max-width:18ch;}
+  .lede{font-family:var(--font-display);font-size:19px;line-height:1.5;color:var(--ink-700);max-width:60ch;}
+  .dateline{font-family:var(--font-mono);font-size:12px;color:var(--ink-300);margin-top:22px;}
+
+  /* ---- section scaffolding ---- */
+  section{padding-top:56px;}
+  .rule{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .rule .line{flex:1;height:1px;background:var(--ink-200);}
+  .rule .stridemark{display:flex;align-items:flex-end;gap:2px;height:12px;}
+  .rule .stridemark i{display:block;width:2.5px;background:var(--accent);}
+  .rule .stridemark i:nth-child(1){height:5px;}.rule .stridemark i:nth-child(2){height:8px;}.rule .stridemark i:nth-child(3){height:12px;}
+  h2{font-family:var(--font-display);font-weight:500;font-size:30px;line-height:1.12;margin:6px 0 4px;}
+  h3{font-family:var(--font-display);font-weight:500;font-size:21px;margin:34px 0 6px;}
+  p{margin:0 0 14px;max-width:68ch;}
+  .muted{color:var(--ink-500);}
+  strong{font-weight:600;}
+  em{font-style:normal;color:var(--accent);font-weight:500;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in oklab,var(--accent),transparent 60%);}
+
+  /* ---- persona card ---- */
+  .persona{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:start;background:var(--card);border:1px solid var(--ink-200);border-radius:8px;padding:24px;}
+  .avatar{width:64px;height:64px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:30px;font-weight:500;box-shadow:0 8px 24px -12px var(--accent);}
+  .persona .name{font-family:var(--font-display);font-size:26px;font-weight:500;line-height:1;}
+  .persona .role{margin-top:6px;}
+  .pill{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:var(--tracking-label);color:var(--accent);background:var(--accent-soft);border:1px solid color-mix(in oklab,var(--accent),transparent 60%);border-radius:999px;padding:3px 10px;font-weight:600;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;}
+  .voicecard{background:var(--card);border:1px solid var(--ink-200);border-radius:8px;padding:16px 18px;}
+  .voicecard h4{margin:0 0 6px;font-family:var(--font-sans);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-700);}
+  .voicecard p{font-size:14.5px;margin:0;color:var(--ink-700);}
+
+  /* ---- journey map ---- */
+  .map{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;margin:10px 0 6px;}
+  .stop{flex:1;min-width:150px;padding:16px 16px 18px;border:1px solid var(--ink-200);background:var(--card);position:relative;}
+  .stop:not(:last-child){border-right:none;}
+  .stop .n{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:0.06em;}
+  .stop .h{font-family:var(--font-display);font-size:18px;font-weight:500;margin:4px 0 4px;}
+  .stop .d{font-size:13px;color:var(--ink-500);}
+
+  /* ---- phone / chat mockups ---- */
+  .stride-block{display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:start;margin:22px 0 6px;}
+  @media(max-width:760px){.stride-block{grid-template-columns:1fr;} .grid2{grid-template-columns:1fr;} .persona{grid-template-columns:1fr;}}
+  .phone{background:var(--paper);border:1px solid var(--ink-200);border-radius:18px;padding:14px 12px 16px;box-shadow:0 24px 60px -34px oklch(0.17 0.006 280 / 0.5);}
+  .phone-head{display:flex;align-items:center;gap:10px;padding:4px 4px 12px;border-bottom:1px solid var(--ink-200);}
+  .phone-head .av{width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:16px;font-weight:500;}
+  .phone-head .meta .nm{font-family:var(--font-display);font-size:17px;font-weight:500;line-height:1;}
+  .phone-head .meta .bt{font-size:9.5px;text-transform:uppercase;letter-spacing:var(--tracking-label);color:var(--accent);margin-top:3px;}
+  .progress{display:flex;align-items:center;gap:6px;justify-content:center;padding:12px 0 8px;}
+  .progress .lbl{font-family:var(--font-mono);font-size:10px;color:var(--ink-300);letter-spacing:0.04em;}
+  .pdots{display:flex;align-items:flex-end;gap:3px;height:12px;}
+  .pdots i{display:block;width:3px;background:var(--ink-200);border-radius:1px;height:6px;}
+  .pdots i.on{background:var(--accent);}
+  .pdots i:nth-child(2){height:8px;}.pdots i:nth-child(3){height:10px;}.pdots i:nth-child(4){height:12px;}
+  .bubble{background:var(--card);border:1px solid var(--ink-200);border-radius:16px 16px 16px 5px;padding:12px 14px;font-family:var(--font-display);font-size:15px;line-height:1.5;color:var(--ink-900);margin:10px 4px 0;}
+  .bubble.note{font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700);background:var(--accent-soft);border-color:color-mix(in oklab,var(--accent),transparent 70%);}
+  .cta{display:inline-block;margin:12px 4px 4px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--on-accent);font-size:13px;font-weight:500;padding:9px 16px;border-radius:12px;}
+  .ghost{display:inline-block;margin:4px 4px;font-size:12.5px;color:var(--ink-500);}
+  .stride-notes h3{margin-top:0;}
+  .stride-notes .tag{font-family:var(--font-mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.04em;}
+  .advances{font-size:13px;color:var(--ink-500);border-left:2px solid var(--accent);padding:2px 0 2px 12px;margin:10px 0;}
+  .orig{font-size:12.5px;color:var(--ink-300);font-style:italic;border-left:1px solid var(--ink-200);padding-left:12px;margin:10px 0;max-width:60ch;}
+
+  /* ---- nudge strip ---- */
+  .nudge{background:var(--card);border:1px solid var(--ink-200);border-radius:8px;padding:16px 18px;margin-bottom:12px;}
+  .nudge .when{font-family:var(--font-mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;}
+  .nudge .said{font-family:var(--font-display);font-size:15.5px;color:var(--ink-900);}
+  .nudge .why{font-size:13px;color:var(--ink-500);margin-top:8px;}
+
+  /* ---- table ---- */
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13.5px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--ink-200);vertical-align:top;}
+  th{font-family:var(--font-sans);text-transform:uppercase;letter-spacing:0.08em;font-size:11px;color:var(--ink-500);font-weight:600;}
+  td code{font-family:var(--font-mono);font-size:12px;color:var(--accent);background:var(--accent-soft);padding:1px 5px;border-radius:4px;}
+  .en{font-family:var(--font-display);color:var(--ink-900);}
+  .zh{color:var(--ink-500);font-size:13px;}
+
+  ul.clean{list-style:none;padding:0;margin:0;}
+  ul.clean li{padding:10px 0;border-bottom:1px solid var(--ink-200);font-size:14.5px;color:var(--ink-700);}
+  ul.clean li:last-child{border-bottom:none;}
+  ul.clean li b{color:var(--ink-900);font-weight:600;}
+  .colophon{margin-top:60px;padding-top:24px;border-top:1px solid var(--ink-200);font-family:var(--font-mono);font-size:11px;color:var(--ink-300);letter-spacing:0.04em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <div class="brandrow">
+      <span class="monobox"><span class="stride"><i></i><i></i><i></i></span></span>
+      <span class="wordmark">AlphaWalk</span>
+    </div>
+    <p class="kicker" style="margin-top:26px;">Onboarding Journey · Design Spec · v1</p>
+    <h1 class="title">A short walk with Margaux</h1>
+    <p class="lede">An in-chat host who greets every new desk owner, walks her through the building one stride at a time, and stays pinned afterward for whenever she loses her way. Not a modal that flashes and vanishes — a conversation that keeps pace with the user.</p>
+    <p class="dateline">Front-desk persona · in-chat coached thread · for the AlphaWalk UI rebuild</p>
+  </header>
+
+  <!-- ============ CONCEPT ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">The idea</p>
+    <h2>Onboarding as hospitality, not instruction</h2>
+    <p>AlphaWalk hires out analysts who walk a beat and file reports. So the first-run experience shouldn't read like a product tour — it should feel like arriving at a well-run editorial house and being met at the front desk by someone who knows where everything lives. The existing brand promise is <em>calm confidence, peace of mind the moment the app opens</em>. A warm, unhurried human host delivers that better than a stack of tooltips ever could.</p>
+    <p>The metaphor is consistent end to end: the user <strong>commands a desk</strong>; analysts are <strong>columnists who walk a beat and file</strong>; onboarding steps are <strong>strides</strong> (the brand's core graphic — alpha drawn as a rising stride). Margaux is the house's <strong>front desk</strong>: she handles the building, never the markets — that distinction keeps her scope clean and quietly reinforces that real analysis comes from the columnists you hire.</p>
+  </section>
+
+  <!-- ============ PERSONA ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">The guide</p>
+    <h2>Meet Margaux</h2>
+    <div class="persona">
+      <div class="avatar">M</div>
+      <div>
+        <div class="name">Margaux</div>
+        <div class="role"><span class="pill">The Front Desk</span></div>
+        <p class="muted" style="margin:14px 0 0;font-size:14.5px;">She runs the front desk at AlphaWalk — the first voice you meet and the one you return to when you're unsure where something lives. She doesn't file market reports; she onboards you, points you to the right columnist, and otherwise stays out of the way. The name leans into the fashion-house register the brand borrows: elegant, distinctive, a little luxe — a concierge, not a chatbot.</p>
+      </div>
+    </div>
+
+    <h3>Voice principles</h3>
+    <div class="grid2">
+      <div class="voicecard"><h4>Unhurried &amp; precise</h4><p>Short, clean sentences. She never rushes or hypes. Confidence shows through restraint — the same way the interface earns calm by leaving things out.</p></div>
+      <div class="voicecard"><h4>Newsroom metaphors</h4><p>Walk, beat, file, desk, dossier, column, floor. The language reinforces what the product actually is, so the metaphor teaches the model.</p></div>
+      <div class="voicecard"><h4>Warm, lightly candid</h4><p>She'll say a thing plainly — including that Create is rough. A host who's honest with you is a host you trust. No exclamation marks, no emoji.</p></div>
+      <div class="voicecard"><h4>Stays in her lane</h4><p>"I handle the building, not the markets." She routes market questions to the columnists, which protects the product's core promise and her credibility.</p></div>
+    </div>
+
+    <h3>Visual treatment</h3>
+    <p class="muted">Margaux uses the columnist monogram system, but where market analysts get a muted <em>author-ink</em> colourway, she carries the brand's <em>ink-violet accent</em> gradient — marking her as the house voice, not a beat. Pinned to the top of the Chat list with a small accent dot and a <span class="pill" style="font-size:9px;padding:2px 8px;">Front Desk</span> kicker in place of a market beat. No Reports List, no Profile tab — she's a thread, not an agent you hire.</p>
+  </section>
+
+  <!-- ============ THE WALK ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">The journey</p>
+    <h2>Four strides, then she stays</h2>
+    <p class="muted">Progress is shown with the stride motif rather than "Tips 1/4" — onboarding steps are literally strides. Each stride is one message from Margaux plus a single button that walks the user to the relevant surface. She advances as the user actually does the thing, so the thread reads like a real conversation.</p>
+    <div class="map">
+      <div class="stop"><div class="n">Stride 1</div><div class="h">The idea</div><div class="d">What AlphaWalk is — a desk you command, not a feed you read.</div></div>
+      <div class="stop"><div class="n">Stride 2</div><div class="h">The Marketplace</div><div class="d">Hire an analyst built by a real person; it files on the spot.</div></div>
+      <div class="stop"><div class="n">Stride 3</div><div class="h">My Agents</div><div class="d">Where filings return — and where you press the analyst.</div></div>
+      <div class="stop"><div class="n">Stride 4</div><div class="h">One more thing</div><div class="d">Create exists, and it's honestly v0.0001. Enter with humour.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ OPENING ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">The copy · opening</p>
+    <h2>She introduces herself</h2>
+    <div class="stride-block">
+      <div class="phone">
+        <div class="phone-head"><span class="av">M</span><div class="meta"><div class="nm">Margaux</div><div class="bt">The Front Desk</div></div></div>
+        <div class="bubble">Hello — I'm Margaux. I keep the front desk here at AlphaWalk. Give me two minutes and I'll walk you through the building; after that I'll stay on this thread for whenever you lose your way.</div>
+        <a class="cta">Take the walk →</a>
+        <a class="ghost">I'll explore on my own</a>
+      </div>
+      <div class="stride-notes">
+        <h3>Designer notes</h3>
+        <p class="muted">Her first message lands as a single unread on the pinned thread the moment the user enters the app. It sets the contract — short, optional, and persistent. The skip never nags: it collapses the walk but keeps her pinned and quiet.</p>
+        <div class="advances"><strong>Advances when:</strong> the user taps <em>Take the walk</em>. Skip sets the thread to standby; she can be re-summoned anytime by opening her thread.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STRIDE 1 ============ -->
+  <section>
+    <div class="stride-block">
+      <div class="phone">
+        <div class="phone-head"><span class="av">M</span><div class="meta"><div class="nm">Margaux</div><div class="bt">The Front Desk</div></div></div>
+        <div class="progress"><span class="pdots"><i class="on"></i><i></i><i></i><i></i></span><span class="lbl">Stride 1 of 4 · The idea</span></div>
+        <div class="bubble">AlphaWalk isn't a feed you read. It's a desk you command. You hire analysts — each one walks a beat, files a report, and answers your questions about it. They sit with the wires while you're away, strip out the noise, and surface the handful of things actually worth your attention. You set the brief; they do the walking.</div>
+        <a class="cta">Where do I find them? →</a>
+      </div>
+      <div class="stride-notes">
+        <span class="tag">Stride 1 · Welcome</span>
+        <h3>The idea</h3>
+        <p class="orig">Original: "Welcome to XX, a platform for autonomous agents for trading information. In here, you can create new agents that suit your needs. Agents are powerful. They can help you monitor news, filter out noise, and catch opportunities."</p>
+        <p class="muted">Reframed from a feature list ("agents are powerful") into a posture ("a desk you command"). Keeps the three jobs — monitor, filter noise, catch opportunities — but renders them as something the analyst does <em>for</em> you while you're away, which is the real value.</p>
+        <div class="advances"><strong>Advances when:</strong> the CTA is tapped (no navigation yet — it just unfolds Stride 2 in-thread, building anticipation before the first hop).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STRIDE 2 ============ -->
+  <section>
+    <div class="stride-block">
+      <div class="phone">
+        <div class="phone-head"><span class="av">M</span><div class="meta"><div class="nm">Margaux</div><div class="bt">The Front Desk</div></div></div>
+        <div class="progress"><span class="pdots"><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="lbl">Stride 2 of 4 · The Marketplace</span></div>
+        <div class="bubble">Start in the Marketplace. Every analyst on the floor was built by a real person solving a real problem — a sector watcher, an earnings hawk, a macro reader. Hiring one is a single tap, and it files its first report for you on the spot. Walk the floor; when a beat lines up with what you follow, bring that analyst onto your team.</div>
+        <a class="cta">Walk me to the Marketplace →</a>
+      </div>
+      <div class="stride-notes">
+        <span class="tag">Stride 2 · Marketplace</span>
+        <h3>The Marketplace</h3>
+        <p class="orig">Original: "In the marketplace, you can also find agents that are created by other users and hire them. It's easy to set up and is created by real users with real use cases."</p>
+        <p class="muted">"Created by real users with real use cases" becomes concrete and human — a sector watcher, an earnings hawk. The button is the first real hop: it navigates to <code>/marketplace</code>. Aligns with the existing payoff that hiring files a first report immediately.</p>
+        <div class="advances"><strong>Advances when:</strong> the user opens the Marketplace (and ideally completes a hire). If they hire, Margaux's post-hire nudge fires; either way Stride 3 unlocks on return to her thread.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STRIDE 3 ============ -->
+  <section>
+    <div class="stride-block">
+      <div class="phone">
+        <div class="phone-head"><span class="av">M</span><div class="meta"><div class="nm">Margaux</div><div class="bt">The Front Desk</div></div></div>
+        <div class="progress"><span class="pdots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="lbl">Stride 3 of 4 · My Agents</span></div>
+        <div class="bubble">Once an analyst is yours, its filings arrive under My Agents. Treat a report as the opening line, not the last word — open any dossier and press it: where it's most convinced, what would break the thesis, where it might be wrong. This is your desk now. Staff it the way you'd build a team you actually trust to call you when it matters.</div>
+        <a class="cta">Show me My Agents →</a>
+      </div>
+      <div class="stride-notes">
+        <span class="tag">Stride 3 · My Agents</span>
+        <h3>My Agents</h3>
+        <p class="orig">Original: "When an agent has prepared a new report, you can discuss the report in the My Agent tab. Please enjoy setting up your agent team, and we sincerely hope this product helps you find new opportunities and save time."</p>
+        <p class="muted">The sincere closing wish is preserved but moved to Stride 4 (the real send-off). Here the focus is the behaviour we want to teach: a report is the <em>start</em> of a conversation. The three prompts mirror the existing Report Chat presets ("highest-conviction call / key risks / where might you be wrong").</p>
+        <div class="advances"><strong>Advances when:</strong> the user opens any report's chat. First time they do, the report-chat coachmark nudge (below) also appears.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STRIDE 4 ============ -->
+  <section>
+    <div class="stride-block">
+      <div class="phone">
+        <div class="phone-head"><span class="av">M</span><div class="meta"><div class="nm">Margaux</div><div class="bt">The Front Desk</div></div></div>
+        <div class="progress"><span class="pdots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="lbl">Stride 4 of 4 · One more thing</span></div>
+        <div class="bubble">One last word, between us. You can also build an analyst from nothing — but Create is still at v0.0001: honest, rough, a little unruly. If you like a challenge, wander in with low expectations and a sense of humour. Everything else here is ready for you. Welcome to the desk — I hope it hands you back some time, and now and then, an edge.</div>
+        <a class="cta">Start my first walk</a>
+      </div>
+      <div class="stride-notes">
+        <span class="tag">Stride 4 · One more thing</span>
+        <h3>One more thing</h3>
+        <p class="orig">Original: "The current create function is still at the v0.0001 stage. Please feel free to try if you like challenges, but be warned, it might look very complicated."</p>
+        <p class="muted">The honesty is the charm — kept intact, just warmed. "Between us" makes it feel like a confidence from the host rather than a disclaimer from legal. The sincere wish from the original Stride 3 lands here as the send-off. The final CTA completes the walk and drops the user into the Marketplace, tailored to the beats picked at first run.</p>
+        <div class="advances"><strong>Advances when:</strong> tapped — marks the walk complete, navigates to <code>/marketplace</code>, and converts Margaux's thread to standing-help mode.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STANDING HELP ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">After the walk</p>
+    <h2>She stays at the desk</h2>
+    <div class="stride-block">
+      <div class="phone">
+        <div class="phone-head"><span class="av">M</span><div class="meta"><div class="nm">Margaux</div><div class="bt">The Front Desk</div></div></div>
+        <div class="bubble note">I'll be here at the front desk. Lost where something lives, or unsure how a piece works? Just ask. I only handle the building — for the markets themselves, I'll always point you to the right analyst.</div>
+      </div>
+      <div class="stride-notes">
+        <h3>Why she persists</h3>
+        <p class="muted">Most onboarding evaporates the instant it ends, taking its goodwill with it. Margaux stays pinned as a quiet standing thread, so the help the user trusted on day one is still there on day thirty. This is the payoff of putting onboarding <em>in the chat</em> rather than in a modal — the channel outlives the tour.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NUDGES ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">The complete journey</p>
+    <h2>Contextual nudges — every step she'll encounter</h2>
+    <p class="muted">Beyond the four strides, Margaux's voice surfaces at the moments a new user is most likely to stall. Each is one quiet line, dismissible, never repeated — they make the onboarding a journey across the whole product rather than a one-time carousel.</p>
+
+    <div class="nudge">
+      <div class="when">Empty state · My Agents, no hires yet</div>
+      <div class="said">"Your desk is quiet — no analysts on it yet. Want me to walk you back to the floor?"</div>
+      <div class="why">Turns a dead-end empty screen into a one-tap route back to the Marketplace, in her voice. Button: <em>Back to the floor →</em></div>
+    </div>
+
+    <div class="nudge">
+      <div class="when">After the first hire · calm, no celebration</div>
+      <div class="said">"Good pick — Hang Seng Sentiment is filing your first report now. I'll let you read it in peace; you'll find it under My Agents in a moment."</div>
+      <div class="why">The brand spec says hiring is one-time with no confetti. Margaux acknowledges the milestone warmly without breaking the calm, and tells the user exactly where the payoff will appear.</div>
+    </div>
+
+    <div class="nudge">
+      <div class="when">First time a Report Chat opens · inline coachmark</div>
+      <div class="said">"This is the analyst's own thread — ask it anything about this filing. I stay out of market talk; this is its beat, not mine."</div>
+      <div class="why">Reinforces the existing "This agent only discusses its own reports" line, and cleanly hands authority from the host to the columnist. Shown once, then dismissed forever.</div>
+    </div>
+
+    <div class="nudge">
+      <div class="when">Return visit · ties to the existing "while you were away" Desk lead</div>
+      <div class="said">"Welcome back. Three filings landed while you were away — the freshest is up top."</div>
+      <div class="why">Reuses the persisted <code>lastVisitAt</code> + new-report count the Desk already tracks, voiced by Margaux so returns feel hosted, not transactional.</div>
+    </div>
+
+    <div class="nudge">
+      <div class="when">First entry to Create · progressive disclosure unlock</div>
+      <div class="said">"Fair warning — Create is still v0.0001. If you like a challenge, by all means try it; just know it can look very complicated in there. The workshop's open, but the floorboards creak — save often, and don't say I didn't tell you."</div>
+      <div class="why">Create stays hidden until the user has hired or created (existing behaviour). The first time it appears, Margaux sets expectations with a wink — consistent with Stride 4, so the honesty reads as a running joke between friends.</div>
+    </div>
+  </section>
+
+  <!-- ============ MECHANICS ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">How it works</p>
+    <h2>Mechanics &amp; state</h2>
+    <ul class="clean">
+      <li><b>Pinned pseudo-thread.</b> Margaux sits at the very top of the Chat list, above hired analysts, with the accent monogram and a <em>Front Desk</em> kicker instead of a market beat. She has no Reports List or Profile — opening her shows only the conversation.</li>
+      <li><b>Scripted, paced conversation.</b> The walk is a fixed sequence of Margaux bubbles, each with one CTA (reusing <code>.btn-accent</code> and the preset-pill styling). Progress renders as the stride motif with "Stride n of 4."</li>
+      <li><b>Advances with the user, not ahead of her.</b> Tapping a CTA both navigates and marks the stride seen; the surface action (visit Marketplace, hire, open a report) unlocks the next bubble, so the thread keeps pace. Go off-script and she simply waits — returning shows a soft "Pick up where we left off?"</li>
+      <li><b>Relationship to the existing first-run modal.</b> Keep the current brand + "what do you follow?" interests modal as the door (it tailors the Marketplace). On landing, Margaux's thread is pinned with one unread inviting the walk. The modal is the door; Margaux is the host inside — no duplication of content.</li>
+      <li><b>Persisted state.</b> Add a <code>margaux</code> object beside the existing <code>hasSeenWelcome</code> / <code>interests</code> / <code>lastVisitAt</code>: <code>{ walkStep: 0–4, walkStatus: 'invited' | 'walking' | 'done' | 'skipped', dismissedNudges: string[] }</code>.</li>
+      <li><b>Never nags.</b> Skipping collapses the walk and quiets the thread; nudges fire at most once each and respect <code>dismissedNudges</code>. Nothing auto-reopens.</li>
+      <li><b>Motion &amp; a11y.</b> Bubbles use the existing <code>dossier-rise</code> / ease-out-expo, gated behind <code>prefers-reduced-motion</code>. Every CTA is a real <code>&lt;button&gt;</code> with an aria-label; the thread is keyboard-navigable.</li>
+      <li><b>Language parity.</b> Every string lives in the i18n dictionary with <code>en</code> and Traditional-Chinese <code>zh</code> values (premium register), per the language policy — no screen mixes the two.</li>
+    </ul>
+  </section>
+
+  <!-- ============ COPY APPENDIX ============ -->
+  <section>
+    <div class="rule"><span class="stridemark"><i></i><i></i><i></i></span><span class="line"></span></div>
+    <p class="kicker">Appendix</p>
+    <h2>Copy &amp; i18n keys</h2>
+    <p class="muted">English strings below, with suggested keys and a Traditional-Chinese starter for the load-bearing lines. Final <code>zh</code> values to be set with the same premium register used elsewhere (聘用, 智能體, 分析師…).</p>
+    <table>
+      <thead><tr><th style="width:30%;">Key</th><th>English</th><th>繁體中文 (draft)</th></tr></thead>
+      <tbody>
+        <tr><td><code>margaux.role</code></td><td class="en">The Front Desk</td><td class="zh">前台</td></tr>
+        <tr><td><code>margaux.intro</code></td><td class="en">Hello — I'm Margaux. I keep the front desk here at AlphaWalk. Give me two minutes and I'll walk you through the building; after that I'll stay on this thread for whenever you lose your way.</td><td class="zh">你好，我是 Margaux，AlphaWalk 的前台。給我兩分鐘，我帶你走一遍；之後我會留在這個對話裡，隨時為你指路。</td></tr>
+        <tr><td><code>margaux.intro.cta</code></td><td class="en">Take the walk →</td><td class="zh">開始導覽 →</td></tr>
+        <tr><td><code>margaux.intro.skip</code></td><td class="en">I'll explore on my own</td><td class="zh">我自己逛逛</td></tr>
+        <tr><td><code>margaux.s1.body</code></td><td class="en">AlphaWalk isn't a feed you read. It's a desk you command. You hire analysts — each one walks a beat, files a report, and answers your questions about it. They sit with the wires while you're away, strip out the noise, and surface the handful of things actually worth your attention. You set the brief; they do the walking.</td><td class="zh">AlphaWalk 不是讓你刷的資訊流，而是一張由你指揮的桌子。你聘用分析師——每一位都走自己的線、發回報告、並回答你的提問。你不在時，他們守著消息、濾掉雜訊，只把真正值得你留意的幾件事呈上來。你定方向，他們去走。</td></tr>
+        <tr><td><code>margaux.s1.cta</code></td><td class="en">Where do I find them? →</td><td class="zh">在哪裡找到他們？ →</td></tr>
+        <tr><td><code>margaux.s2.body</code></td><td class="en">Start in the Marketplace. Every analyst on the floor was built by a real person solving a real problem — a sector watcher, an earnings hawk, a macro reader. Hiring one is a single tap, and it files its first report for you on the spot. Walk the floor; when a beat lines up with what you follow, bring that analyst onto your team.</td><td class="zh">先從市場開始。這裡每一位分析師，都是真實的人為了真實的需求打造的——盯產業的、追財報的、讀宏觀的。聘用只需一鍵，他會當場為你發出第一份報告。逛逛這層樓，遇到與你關注的線相符的，就把他帶進你的團隊。</td></tr>
+        <tr><td><code>margaux.s2.cta</code></td><td class="en">Walk me to the Marketplace →</td><td class="zh">帶我去市場 →</td></tr>
+        <tr><td><code>margaux.s3.body</code></td><td class="en">Once an analyst is yours, its filings arrive under My Agents. Treat a report as the opening line, not the last word — open any dossier and press it: where it's most convinced, what would break the thesis, where it might be wrong. This is your desk now. Staff it the way you'd build a team you actually trust to call you when it matters.</td><td class="zh">分析師一旦是你的，他的報告就會出現在「我的智能體」裡。把報告當成對話的開場，而不是結論——打開任何一份卷宗，追問下去：哪裡最有把握、什麼會推翻論點、哪裡可能看錯了。這是你的桌子，照你真正信得過、關鍵時刻會打給你的團隊去配置。</td></tr>
+        <tr><td><code>margaux.s3.cta</code></td><td class="en">Show me My Agents →</td><td class="zh">看看我的智能體 →</td></tr>
+        <tr><td><code>margaux.s4.body</code></td><td class="en">One last word, between us. You can also build an analyst from nothing — but Create is still at v0.0001: honest, rough, a little unruly. If you like a challenge, wander in with low expectations and a sense of humour. Everything else here is ready for you. Welcome to the desk — I hope it hands you back some time, and now and then, an edge.</td><td class="zh">最後一句，私下說。你也可以從零打造一位分析師——但「創建」還在 v0.0001：誠實、粗糙、有點不受控。若你喜歡挑戰，就帶著低期待和一點幽默進去看看。其餘的一切都已為你備好。歡迎來到這張桌子——願它替你省下一些時間，也偶爾，為你帶來一點優勢。</td></tr>
+        <tr><td><code>margaux.s4.cta</code></td><td class="en">Start my first walk</td><td class="zh">展開我的第一趟 walk</td></tr>
+        <tr><td><code>margaux.standing</code></td><td class="en">I'll be here at the front desk. Lost where something lives, or unsure how a piece works? Just ask. I only handle the building — for the markets themselves, I'll always point you to the right analyst.</td><td class="zh">我就在前台。不確定東西放在哪、或某個功能怎麼用？儘管問。我只管這棟樓——市場本身，我會把你交給對的分析師。</td></tr>
+        <tr><td><code>margaux.nudge.emptyDesk</code></td><td class="en">Your desk is quiet — no analysts on it yet. Want me to walk you back to the floor?</td><td class="zh">你的桌子還很安靜，還沒有任何分析師。要我帶你回市場那層嗎？</td></tr>
+        <tr><td><code>margaux.nudge.firstHire</code></td><td class="en">Good pick — {name} is filing your first report now. I'll let you read it in peace; you'll find it under My Agents in a moment.</td><td class="zh">選得好——{name} 正在為你發出第一份報告。我先不打擾，稍後就能在「我的智能體」裡看到。</td></tr>
+        <tr><td><code>margaux.nudge.reportChat</code></td><td class="en">This is the analyst's own thread — ask it anything about this filing. I stay out of market talk; this is its beat, not mine.</td><td class="zh">這是分析師自己的對話——關於這份報告，儘管問他。市場的事我不插話，這是他的線，不是我的。</td></tr>
+        <tr><td><code>margaux.nudge.return</code></td><td class="en">Welcome back. {n} filings landed while you were away — the freshest is up top.</td><td class="zh">歡迎回來。你離開時又有 {n} 份報告送達——最新的在最上面。</td></tr>
+        <tr><td><code>margaux.nudge.create</code></td><td class="en">Fair warning — v0.0001. The workshop's open, but the floorboards creak. Save often, and don't say I didn't tell you.</td><td class="zh">先說好——v0.0001。工作室是開著的，但地板會吱呀作響。記得常存檔，別說我沒提醒你。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <p class="colophon">AlphaWalk · Margaux onboarding journey · design spec v1 · review draft, no code shipped yet</p>
+
+</div>
+</body>
+</html>

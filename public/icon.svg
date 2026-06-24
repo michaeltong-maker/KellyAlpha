@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="AlphaWalk">
+  <!-- AlphaWalk monogram: a hairline square framing the rising stride — three
+       ascending marks (footsteps on a walk / ticks on a price axis) set on a
+       baseline. Obsidian card, bone frame, ink-violet gradient strides — the
+       editorial brand mark, matching the in-app logo. -->
+  <defs>
+    <linearGradient id="aw-stride" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5B54D6"/>
+      <stop offset="100%" stop-color="#9A5BD0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Obsidian rounded card -->
+  <rect width="512" height="512" rx="112" fill="#16151C"/>
+
+  <!-- Hairline square frame (bone) -->
+  <rect x="104" y="104" width="304" height="304" rx="10"
+        fill="none" stroke="#F4EFE6" stroke-width="13"/>
+
+  <!-- Rising stride: three ascending marks -->
+  <g stroke="url(#aw-stride)" stroke-width="26" stroke-linecap="round">
+    <line x1="184" y1="338" x2="184" y2="288"/>
+    <line x1="256" y1="338" x2="256" y2="238"/>
+    <line x1="328" y1="338" x2="328" y2="188"/>
+  </g>
+
+  <!-- Baseline (the price axis / the ground of the walk) -->
+  <line x1="170" y1="356" x2="342" y2="356"
+        stroke="#F4EFE6" stroke-width="11" stroke-linecap="round" opacity="0.85"/>
+</svg>

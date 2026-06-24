@@ -1,0 +1,270 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   ALPHAWALK · Theme tokens (OKLCH)
+   ------------------------------------------------------------
+   A monochrome editorial system. Each variable holds the three
+   OKLCH channels (L C H) WITHOUT the oklch() wrapper, so Tailwind
+   injects opacity via `oklch(var(--token) / <alpha-value>)`
+   (see tailwind.config.js). Flip `<html data-theme="dark">` to
+   invert the entire palette — no component edits required.
+
+   Neutrals are tinted a whisper (paper warm, hue 85; ink cool,
+   hue 280) so the page reads as ink on premium paper, never as
+   flat #000 on #fff. The legacy `--brand-*` ramp is repurposed
+   to greyscale, so existing `bg-brand-*` utilities de-purple
+   automatically.
+   ============================================================ */
+
+:root {
+  /* INK · text + structure */
+  --ink-900: 0.17 0.006 280;
+  --ink-700: 0.34 0.006 280;
+  --ink-500: 0.52 0.005 280;
+  --ink-300: 0.72 0.004 285;
+  --ink-200: 0.88 0.003 90;
+  --ink-100: 0.93 0.004 90;
+  --ink-50:  0.965 0.004 90;
+
+  /* BRAND · monochrome ramp (600/700 = obsidian primary) */
+  --brand-50:  0.965 0.004 90;
+  --brand-100: 0.92 0.004 90;
+  --brand-200: 0.84 0.004 285;
+  --brand-300: 0.70 0.005 285;
+  --brand-400: 0.50 0.005 282;
+  --brand-500: 0.34 0.006 280;
+  --brand-600: 0.24 0.006 280;
+  --brand-700: 0.17 0.006 280;
+  --brand-800: 0.12 0.006 280;
+  --brand-900: 0.09 0.006 280;
+
+  /* SURFACES */
+  --paper: 0.972 0.006 85;
+  --card:  0.995 0.003 85;
+
+  /* ON-BRAND label colour on a primary fill */
+  --on-brand: 0.985 0.004 85;
+
+  /* FUNCTIONAL · market data only */
+  --success: 0.60 0.12 150;
+  --danger:  0.55 0.17 25;
+
+  /* ACCENT · electric cobalt — the brand signature. Used sparingly on primary
+     actions, active states, the logo mark and focus. Distinct hue family from
+     success/danger so it never competes with market data.
+     "Ink violet": a blue→violet pair drives a soft directional gradient on
+     primary actions, while the translucent soft tint carries airy selected
+     states. Replaces the old flat cobalt. */
+  --accent:      0.52 0.165 278;   /* lead indigo — text, dots, borders */
+  --accent-2:    0.585 0.155 308;  /* violet — gradient partner */
+  --accent-soft: 0.955 0.028 290;  /* translucent lavender — selected fills */
+  --on-accent:   0.99 0.004 290;
+
+  /* TYPE stacks. Latin always renders in Newsreader/IBM Plex (first in each
+     stack); the Noto CJK faces only catch characters those don't cover. TC is
+     listed before SC so Traditional UI keeps its correct forms, with SC right
+     after so Simplified content lands on a matching serif/sans instead of
+     falling through to the OS sans (PingFang). */
+  --font-display: 'Newsreader', 'Noto Serif TC', 'Noto Serif SC', 'Songti TC', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', 'Noto Sans TC', 'Noto Sans SC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Noto Sans TC', 'Noto Sans SC', ui-monospace, monospace;
+}
+
+/* Simplified locale: put the SC faces first so shared Han codepoints render in
+   the correct Mainland glyph forms (the root <html lang> is set to zh-Hans).
+   Latin still leads with Newsreader/IBM Plex, untouched. */
+:root:lang(zh-Hans) {
+  --font-display: 'Newsreader', 'Noto Serif SC', 'Noto Serif TC', 'Songti SC', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', 'Noto Sans SC', 'Noto Sans TC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Noto Sans SC', 'Noto Sans TC', ui-monospace, monospace;
+}
+
+:root[data-theme='dark'] {
+  /* Runway black, rebuilt. Deeper paper for a true black ground, a clear
+     elevation step up to card, brighter hairlines so structure reads, a
+     lifted secondary-ink ramp for legibility, and a more luminous ink-violet
+     accent that glows on black instead of sinking into it.
+     Ink lightens to bone; brand inverts to near-white. */
+  --ink-900: 0.96 0.004 85;    /* primary text — bright bone   */
+  --ink-700: 0.84 0.004 85;    /* strong secondary text        */
+  --ink-500: 0.68 0.007 285;   /* secondary / captions (lifted)*/
+  --ink-300: 0.54 0.007 285;   /* placeholder / disabled       */
+  --ink-200: 0.37 0.009 282;   /* hairline borders (brighter)  */
+  --ink-100: 0.29 0.008 281;   /* subtle fills / row hover     */
+  --ink-50:  0.24 0.007 280;   /* faintest fill                */
+
+  --brand-50:  0.24 0.007 280;
+  --brand-100: 0.31 0.007 281;
+  --brand-200: 0.42 0.006 282;
+  --brand-300: 0.56 0.006 283;
+  --brand-400: 0.71 0.005 285;
+  --brand-500: 0.84 0.004 85;
+  --brand-600: 0.91 0.004 85;
+  --brand-700: 0.96 0.004 85;
+  --brand-800: 0.98 0.003 85;
+  --brand-900: 0.995 0.002 85;
+
+  /* Surfaces — deep ground, unmistakable lift to elevated cards
+     (was .15 / .20; now .135 / .195). */
+  --paper: 0.135 0.006 281;
+  --card:  0.195 0.008 282;
+
+  --on-brand: 0.14 0.006 280;  /* obsidian text on bone button */
+
+  --success: 0.74 0.14 150;
+  --danger:  0.68 0.19 25;
+
+  /* Ink violet, dialled up for black: more luminance + chroma so the
+     gradient, dots and selected states glow. */
+  --accent:      0.74 0.175 280;
+  --accent-2:    0.78 0.165 308;
+  --accent-soft: 0.31 0.095 288;
+  --on-accent:   0.13 0.006 280;
+}
+
+/* App-height variable. Defaults to 100svh (smallest viewport — accounts for
+   iOS Safari's URL bar). On iOS/Android when the on-screen keyboard appears,
+   the visualViewport API in App.tsx overrides this to the actual visible
+   height so the message input never slides under the keyboard. */
+:root { --app-vh: 100svh; }
+
+html, body, #root {
+  height: var(--app-vh);
+  margin: 0;
+  padding: 0;
+  background: oklch(var(--paper));
+  font-family: var(--font-sans);
+  color: oklch(var(--ink-900));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body { overflow: hidden; overscroll-behavior: none; }
+
+* { box-sizing: border-box; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible {
+  outline: 2px solid oklch(var(--accent));
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+input, textarea, select, button { font-family: inherit; }
+
+/* ============================================================
+   Accent system — modern "ink violet"
+   ------------------------------------------------------------
+   A reusable gradient primary action and a few accent helpers.
+   The gradient + soft elevation reads contemporary where the old
+   flat cobalt fill read dated. Rounder geometry (12px) on the
+   primary CTA; market green/red are never touched here.
+   ============================================================ */
+.accent-gradient {
+  background-image: linear-gradient(135deg, oklch(var(--accent)) 0%, oklch(var(--accent-2)) 100%);
+}
+
+.btn-accent {
+  background-image: linear-gradient(135deg, oklch(var(--accent)) 0%, oklch(var(--accent-2)) 100%);
+  color: oklch(var(--on-accent));
+  border-radius: 12px;
+  font-weight: 500;
+  box-shadow:
+    0 1px 2px oklch(var(--accent) / 0.28),
+    0 12px 28px -14px oklch(var(--accent) / 0.55);
+  transition: filter 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-accent:hover { filter: brightness(1.06) saturate(1.04); }
+.btn-accent:active { transform: translateY(1px); filter: brightness(0.97); box-shadow: 0 1px 2px oklch(var(--accent) / 0.28); }
+.btn-accent:disabled {
+  /* Drop the gradient entirely when disabled so the label stays legible —
+     a flat muted surface with clearly readable secondary ink, not a washed-out
+     gradient with near-white text on top. */
+  background-image: none;
+  background-color: oklch(var(--ink-200));
+  color: oklch(var(--ink-500));
+  filter: none;
+  opacity: 1;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Soft, translucent selected state for chips / segmented controls. */
+.chip-active {
+  background-color: oklch(var(--accent-soft));
+  color: oklch(var(--accent));
+  border-color: oklch(var(--accent) / 0.4);
+}
+
+/* ============================================================
+   THE DOSSIER — brand system
+   ------------------------------------------------------------
+   AlphaWalk's analysts walk the markets and *file reports*. The
+   interface treats every report as a published artifact: warm
+   paper with a faint tooth, editorial serif display, a drop-cap
+   lede, and the "stride" (three ascending marks) as the
+   connective graphic — dividers, mastheads, the spine of a chart.
+   ============================================================ */
+
+/* Faint paper tooth over the whole surface. Subtle (it should be felt,
+   not seen) and never intercepts pointer events. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+:root[data-theme='dark'] body::after { opacity: 0.05; }
+
+/* Editorial drop cap for a report lede. Newsreader initial, sunk two lines. */
+.lede-dropcap::first-letter {
+  font-family: var(--font-display);
+  float: left;
+  font-size: 3.1em;
+  line-height: 0.82;
+  font-weight: 500;
+  padding: 0.04em 0.12em 0 0;
+  color: oklch(var(--ink-900));
+}
+
+/* Tracked editorial micro-label — the dateline / kicker voice. */
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.6875rem;
+  color: oklch(var(--ink-500));
+}
+
+/* The stride draws itself in. Components set --stride-len to their path length. */
+@keyframes stride-draw {
+  from { stroke-dashoffset: var(--stride-len, 240); }
+  to   { stroke-dashoffset: 0; }
+}
+.stride-draw path, .stride-draw line {
+  stroke-dasharray: var(--stride-len, 240);
+  animation: stride-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* A page settling into place — used when a dossier opens. */
+@keyframes dossier-rise {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.dossier-rise { animation: dossier-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stride-draw path, .stride-draw line, .dossier-rise { animation: none; }
+  /* Calm the decorative loops for motion-sensitive users; functional content
+     still updates, it just doesn't pulse/spin/slide. */
+  .animate-pulse, .animate-ping, .animate-spin, .animate-twinkle,
+  .animate-fade-rise, .animate-sheet-up, .animate-slide-in-right { animation: none !important; }
+}
