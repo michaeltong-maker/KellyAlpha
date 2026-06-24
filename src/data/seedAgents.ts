@@ -1,5 +1,6 @@
 import type { Agent, Tag, ToolKey, Personality, Tone, Temperament, Frequency } from '../types';
 import { seedSeeds } from '../lib/avatars';
+import { PERSONAL_AGENT } from './seedDeskReports';
 
 // Stylised suffix used in the title (expertise) line, paired with the topic title.
 const TITLE_SUFFIXES = [
@@ -280,7 +281,7 @@ const CHINESE_DEMO_AGENTS: Agent[] = [
   },
 ];
 
-export const SEED_AGENTS: Agent[] = [...CHINESE_DEMO_AGENTS, ...seedSeeds.map((seed, i): Agent => {
+export const SEED_AGENTS: Agent[] = [PERSONAL_AGENT, ...CHINESE_DEMO_AGENTS, ...seedSeeds.map((seed, i): Agent => {
   const topic = TOPICS[i % TOPICS.length];
   // The expertise line — formerly the agent's full name; preserved so existing
   // topic-key matching (sample reports, marketplace card variants, etc.) continues

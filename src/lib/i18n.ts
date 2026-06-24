@@ -84,6 +84,14 @@ const messages = {
     // Search placeholders
     'search.agents': 'Search agents',
     'search.desk': 'Search title, ticker, or keyword…',
+    'desk.tab.public': 'Public Desk',
+    'desk.tab.personal': 'Personal Desk',
+    'desk.sort.label': 'Sort',
+    'desk.sort.latest': 'Latest',
+    'desk.sort.pop7d': 'Popular · 7 days',
+    'desk.sort.pop24h': 'Popular · 24 hours',
+    'desk.personal.empty': 'Reports from agents you create or hire appear here.',
+    'desk.popular.empty': 'No reports in this window.',
     'search.marketplace': 'Search agents or pick a tag',
     'search.popularTags': 'Popular tags',
 
@@ -510,6 +518,14 @@ const messages = {
     // Search placeholders
     'search.agents': '搜尋智能體',
     'search.desk': '依標題、代碼或關鍵詞搜尋…',
+    'desk.tab.public': '公開桌',
+    'desk.tab.personal': '個人桌',
+    'desk.sort.label': '排序',
+    'desk.sort.latest': '最新',
+    'desk.sort.pop7d': '熱門 · 7 天',
+    'desk.sort.pop24h': '熱門 · 24 小時',
+    'desk.personal.empty': '由你建立或聘用的分析師所產生的報告會顯示在這裡。',
+    'desk.popular.empty': '此時間範圍內沒有報告。',
     'search.marketplace': '搜尋智能體或選擇標籤',
     'search.popularTags': '熱門標籤',
 
@@ -936,6 +952,14 @@ const messages = {
     // Search placeholders
     'search.agents': '搜寻智能体',
     'search.desk': '依标题、代码或关键词搜寻…',
+    'desk.tab.public': '公开桌',
+    'desk.tab.personal': '个人桌',
+    'desk.sort.label': '排序',
+    'desk.sort.latest': '最新',
+    'desk.sort.pop7d': '热门 · 7 天',
+    'desk.sort.pop24h': '热门 · 24 小时',
+    'desk.personal.empty': '由你创建或雇用的分析师生成的报告会显示在这里。',
+    'desk.popular.empty': '此时间范围内没有报告。',
     'search.marketplace': '搜寻智能体或选择标签',
     'search.popularTags': '热门标签',
 

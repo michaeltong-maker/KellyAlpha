@@ -135,6 +135,7 @@ export interface Result {
   keywords: string[];     // for search / filters
   stocks: StockMention[]; // structured references; chips render inline in the body
   artifactFilename: string; // e.g. "semis-pulse-2026-05-20.md"
+  views?: number;           // number of users who have read this report (popularity signal)
   // Optional language overrides; base fields are English. See Agent.i18n.
   i18n?: { zh?: Partial<Omit<Result, 'i18n'>> };
 }

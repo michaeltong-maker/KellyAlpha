@@ -1,6 +1,7 @@
 import type { Result } from '../types';
 import { SEED_AGENTS } from './seedAgents';
 import { createSampleResult } from '../lib/result';
+import { PERSONAL_DESK_REPORTS } from './seedDeskReports';
 
 function isoAgo(min: number): string {
   return new Date(Date.now() - min * 60_000).toISOString();
@@ -203,7 +204,7 @@ const CHINESE_DEMO_RESULTS: Result[] = [
 ];
 
 const englishResults: Result[] = SEED_AGENTS
-  .filter((a) => !a.id.startsWith('seed-zh-'))
+  .filter((a) => !a.id.startsWith('seed-zh-') && !a.id.startsWith('desk-'))
   .slice(0, 12)
   .map((agent, i) => {
     const base = createSampleResult(agent);
@@ -214,4 +215,17 @@ const englishResults: Result[] = SEED_AGENTS
     };
   });
 
-export const SEED_RESULTS: Result[] = [...CHINESE_DEMO_RESULTS, ...englishResults];
+// Give every seeded report a stable, plausible view count (the popularity signal
+// the Desk sorts by). Personal reports carry their own explicit counts.
+function deterministicViews(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return 140 + (h % 3200); // ~140 .. ~3340
+}
+
+const publicSeed = [...CHINESE_DEMO_RESULTS, ...englishResults].map((r) => ({
+  ...r,
+  views: r.views ?? deterministicViews(r.id),
+}));
+
+export const SEED_RESULTS: Result[] = [...publicSeed, ...PERSONAL_DESK_REPORTS];
