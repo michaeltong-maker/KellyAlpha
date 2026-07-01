@@ -185,6 +185,8 @@ const messages = {
 
     // Portfolio subsection
     'portfolio.add': 'Add holding',
+    'portfolio.edit': 'Edit holding',
+    'portfolio.save': 'Save changes',
     'portfolio.empty': 'No holdings yet. Add your first position.',
     'portfolio.total': 'Total value',
     'portfolio.today': 'Today',
@@ -673,6 +675,8 @@ const messages = {
 
     // Portfolio subsection
     'portfolio.add': '新增持股',
+    'portfolio.edit': '編輯持股',
+    'portfolio.save': '儲存變更',
     'portfolio.empty': '尚無持股。新增你的第一筆部位。',
     'portfolio.total': '總市值',
     'portfolio.today': '今日',
@@ -1161,6 +1165,8 @@ const messages = {
 
     // Portfolio subsection
     'portfolio.add': '新增持股',
+    'portfolio.edit': '编辑持股',
+    'portfolio.save': '保存更改',
     'portfolio.empty': '尚无持股。新增你的第一笔仓位。',
     'portfolio.total': '总市值',
     'portfolio.today': '今日',

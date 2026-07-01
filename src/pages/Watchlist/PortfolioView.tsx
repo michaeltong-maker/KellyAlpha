@@ -48,6 +48,7 @@ export function PortfolioView() {
   const { portfolio, setPortfolio } = useApp();
   const t = useT();
   const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<PortfolioHolding | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<PortfolioHolding | null>(null);
 
   const holdingsRef = useRef(portfolio.holdings);
@@ -112,6 +113,16 @@ export function PortfolioView() {
     setShowAdd(false);
   };
 
+  // Replace an existing holding's editable fields (name, currency, lots),
+  // preserving its identity and any live price already fetched.
+  const updateHolding = (symbol: string, patch: { name: string; lots: Lot[] }) => {
+    setPortfolio((p) => ({
+      ...p,
+      holdings: p.holdings.map((h) => (h.symbol === symbol ? { ...h, name: patch.name, lots: patch.lots } : h)),
+    }));
+    setEditing(null);
+  };
+
   const removeHolding = (symbol: string) => {
     setPortfolio((p) => ({ ...p, holdings: p.holdings.filter((h) => h.symbol !== symbol) }));
     setConfirmRemove(null);
@@ -154,6 +165,7 @@ export function PortfolioView() {
               key={c.h.symbol}
               c={c}
               allocationPct={totals.totalUsd > 0 && c.mktValueUsd !== undefined ? (c.mktValueUsd / totals.totalUsd) * 100 : undefined}
+              onEdit={() => setEditing(c.h)}
               onRemove={() => setConfirmRemove(c.h)}
             />
           ))}
@@ -163,7 +175,17 @@ export function PortfolioView() {
         </ul>
       </div>
 
-      {showAdd && <AddHoldingModal onClose={() => setShowAdd(false)} onAdd={addHolding} />}
+      {showAdd && <HoldingModal mode="add" onClose={() => setShowAdd(false)} onSubmit={addHolding} />}
+
+      {editing && (
+        <HoldingModal
+          key={editing.symbol}
+          mode="edit"
+          initial={editing}
+          onClose={() => setEditing(null)}
+          onSubmit={(h) => updateHolding(h.symbol, { name: h.name, lots: h.lots })}
+        />
+      )}
 
       {confirmRemove && (
         <ConfirmDeleteSheet
@@ -181,7 +203,7 @@ export function PortfolioView() {
   );
 }
 
-function HoldingCard({ c, allocationPct, onRemove }: { c: HoldingCalc; allocationPct?: number; onRemove: () => void }) {
+function HoldingCard({ c, allocationPct, onEdit, onRemove }: { c: HoldingCalc; allocationPct?: number; onEdit: () => void; onRemove: () => void }) {
   const t = useT();
   const nativeSym = currencySymbol(c.nativeCcy);
   const purchaseSym = currencySymbol(c.purchaseCcy);
@@ -189,39 +211,42 @@ function HoldingCard({ c, allocationPct, onRemove }: { c: HoldingCalc; allocatio
   const up = (c.changePct ?? 0) >= 0;
 
   return (
-    <li className="rounded-lg border border-ink-200 bg-card p-3.5">
-      {/* Line 1 — identity + allocation */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-[16px] font-medium text-ink-900 truncate leading-tight">{c.h.name}</h3>
-          <p className="font-mono text-[12px] text-ink-500 mt-0.5">
-            {c.h.symbol} · {c.qty.toLocaleString()} {t('portfolio.col.qty').toLowerCase()} · {t(c.h.lots.length === 1 ? 'portfolio.lots.one' : 'portfolio.lots.many', { n: c.h.lots.length })}
-          </p>
+    <li className="rounded-lg border border-ink-200 bg-card overflow-hidden">
+      {/* Tap the card body to edit the holding's lots. */}
+      <button onClick={onEdit} className="w-full text-left p-3.5 pb-2.5 active:bg-ink-50 transition-colors">
+        {/* Line 1 — identity + allocation */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-[16px] font-medium text-ink-900 truncate leading-tight">{c.h.name}</h3>
+            <p className="font-mono text-[12px] text-ink-500 mt-0.5">
+              {c.h.symbol} · {c.qty.toLocaleString()} {t('portfolio.col.qty').toLowerCase()} · {t(c.h.lots.length === 1 ? 'portfolio.lots.one' : 'portfolio.lots.many', { n: c.h.lots.length })}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="font-mono text-[17px] text-ink-900 leading-none">{allocationPct !== undefined ? `${allocationPct.toFixed(1)}%` : '—'}</p>
+            <p className="text-[10px] uppercase tracking-label text-ink-400 mt-1">{t('portfolio.col.alloc')}</p>
+          </div>
         </div>
-        <div className="text-right shrink-0">
-          <p className="font-mono text-[17px] text-ink-900 leading-none">{allocationPct !== undefined ? `${allocationPct.toFixed(1)}%` : '—'}</p>
-          <p className="text-[10px] uppercase tracking-label text-ink-400 mt-1">{t('portfolio.col.alloc')}</p>
-        </div>
-      </div>
 
-      {/* Line 2 — cost + market metrics grid */}
-      <div className="grid grid-cols-4 gap-2 mt-3">
-        <Metric label={t('portfolio.col.avgCost')} value={fmtPrice(c.avgCost, purchaseSym)} />
-        <Metric label={t('portfolio.col.current')} value={c.price !== undefined ? fmtPrice(c.price, nativeSym) : '—'} />
-        <Metric
-          label={t('portfolio.col.mktValue')}
-          value={c.mktValueNative !== undefined ? fmtPrice(c.mktValueNative, nativeSym) : '—'}
-          sub={showUsdEquiv && c.mktValueUsd !== undefined ? `≈ ${fmtUsd(c.mktValueUsd)}` : undefined}
-        />
-        <Metric
-          label={t('portfolio.col.today')}
-          value={c.changePct !== undefined ? pct(c.changePct) : '—'}
-          tone={c.changePct === undefined ? undefined : up ? 'up' : 'down'}
-        />
-      </div>
+        {/* Line 2 — cost + market metrics grid */}
+        <div className="grid grid-cols-4 gap-2 mt-3">
+          <Metric label={t('portfolio.col.avgCost')} value={fmtPrice(c.avgCost, purchaseSym)} />
+          <Metric label={t('portfolio.col.current')} value={c.price !== undefined ? fmtPrice(c.price, nativeSym) : '—'} />
+          <Metric
+            label={t('portfolio.col.mktValue')}
+            value={c.mktValueNative !== undefined ? fmtPrice(c.mktValueNative, nativeSym) : '—'}
+            sub={showUsdEquiv && c.mktValueUsd !== undefined ? `≈ ${fmtUsd(c.mktValueUsd)}` : undefined}
+          />
+          <Metric
+            label={t('portfolio.col.today')}
+            value={c.changePct !== undefined ? pct(c.changePct) : '—'}
+            tone={c.changePct === undefined ? undefined : up ? 'up' : 'down'}
+          />
+        </div>
+      </button>
 
       {/* Remove */}
-      <div className="flex justify-end mt-2">
+      <div className="flex justify-end px-3.5 pb-2 -mt-0.5">
         <button onClick={onRemove} className="text-ink-400 hover:text-danger transition-colors p-1" aria-label={t('portfolio.remove.confirm')}>
           <Trash2 size={15} />
         </button>
@@ -241,17 +266,29 @@ function Metric({ label, value, sub, tone }: { label: string; value: string; sub
   );
 }
 
-// ---- Add holding modal (multi-lot) ----
+// ---- Add / Edit holding modal (multi-lot) ----
 interface DraftLot { date: string; quantity: string; price: string }
 
-function AddHoldingModal({ onClose, onAdd }: { onClose: () => void; onAdd: (h: PortfolioHolding) => void }) {
+interface HoldingModalProps {
+  mode: 'add' | 'edit';
+  initial?: PortfolioHolding;
+  onClose: () => void;
+  onSubmit: (h: PortfolioHolding) => void;
+}
+
+function HoldingModal({ mode, initial, onClose, onSubmit }: HoldingModalProps) {
   const t = useT();
-  const [market, setMarket] = useState<Market>('US');
-  const [symbol, setSymbol] = useState('');
-  const [name, setName] = useState('');
-  const [currency, setCurrency] = useState<Currency>('USD');
+  const isEdit = mode === 'edit';
+  const [market, setMarket] = useState<Market>(initial?.market ?? 'US');
+  const [symbol, setSymbol] = useState(initial?.symbol ?? '');
+  const [name, setName] = useState(initial?.name ?? '');
+  const [currency, setCurrency] = useState<Currency>(initial?.lots[0]?.currency ?? 'USD');
   const [currencyTouched, setCurrencyTouched] = useState(false);
-  const [lots, setLots] = useState<DraftLot[]>([{ date: todayISO(), quantity: '', price: '' }]);
+  const [lots, setLots] = useState<DraftLot[]>(
+    initial
+      ? initial.lots.map((l) => ({ date: l.date, quantity: String(l.quantity), price: String(l.price) }))
+      : [{ date: todayISO(), quantity: '', price: '' }],
+  );
 
   // Default the currency to the market's native currency until the user overrides.
   const setMarketAndCcy = (m: Market) => {
@@ -278,10 +315,10 @@ function AddHoldingModal({ onClose, onAdd }: { onClose: () => void; onAdd: (h: P
 
   const submit = () => {
     if (!canSubmit) return;
-    const sym = symbol.trim().toUpperCase();
+    const sym = (initial?.symbol ?? symbol.trim().toUpperCase());
     const holding: PortfolioHolding = {
       symbol: sym,
-      market,
+      market: initial?.market ?? market,
       name: name.trim() || sym,
       lots: validLots.map((l, i): Lot => ({
         id: `lot-${Date.now().toString(36)}-${i}`,
@@ -291,41 +328,50 @@ function AddHoldingModal({ onClose, onAdd }: { onClose: () => void; onAdd: (h: P
         currency,
       })),
     };
-    onAdd(holding);
+    onSubmit(holding);
   };
 
   return (
     <div className="absolute inset-0 bg-ink-900/40 z-30 flex items-end" onClick={onClose}>
       <div className="w-full bg-card rounded-t-lg shadow-sheet p-4 pb-[max(env(safe-area-inset-bottom),16px)] max-h-[88%] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-[20px] font-medium text-ink-900">{t('portfolio.add')}</h3>
+          <h3 className="font-display text-[20px] font-medium text-ink-900">{t(isEdit ? 'portfolio.edit' : 'portfolio.add')}</h3>
           <button onClick={onClose} className="text-ink-500 hover:text-ink-900 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="space-y-3">
-          {/* Market */}
-          <div>
-            <label className="text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.field.market')}</label>
-            <div className="grid grid-cols-4 gap-1.5 mt-1.5">
-              {MARKETS.map((m) => (
-                <button key={m} onClick={() => setMarketAndCcy(m)}
-                  className={`py-2 rounded-md text-[14px] font-medium transition-colors ${market === m ? 'bg-accent-soft text-accent ring-1 ring-accent/40' : 'bg-ink-100 text-ink-700 hover:bg-ink-200/60'}`}>
-                  {marketLabel(m)}
-                </button>
-              ))}
+          {isEdit ? (
+            /* Identity is fixed when editing — show it, don't let it drift. */
+            <div className="flex items-baseline gap-2">
+              <span className="font-mono text-[18px] text-ink-900">{initial?.symbol}</span>
+              <span className="text-[13px] text-ink-500">{marketLabel(market)}</span>
             </div>
-          </div>
-
-          {/* Symbol + name */}
-          <div className="grid grid-cols-2 gap-2">
+          ) : (
             <div>
-              <label className="text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.field.symbol')}</label>
-              <input
-                value={symbol} onChange={(e) => setSymbol(e.target.value)} onBlur={prefillPrice}
-                placeholder={market === 'US' ? 'AAPL' : market === 'HK' ? '0700.HK' : market === 'JP' ? '7203.T' : '600519.SS'}
-                className="mt-1.5 w-full rounded-md border border-ink-200 bg-card px-3 py-2 text-[16px] font-mono outline-none focus:border-ink-900 placeholder:text-ink-300"
-              />
+              <label className="text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.field.market')}</label>
+              <div className="grid grid-cols-4 gap-1.5 mt-1.5">
+                {MARKETS.map((m) => (
+                  <button key={m} onClick={() => setMarketAndCcy(m)}
+                    className={`py-2 rounded-md text-[14px] font-medium transition-colors ${market === m ? 'bg-accent-soft text-accent ring-1 ring-accent/40' : 'bg-ink-100 text-ink-700 hover:bg-ink-200/60'}`}>
+                    {marketLabel(m)}
+                  </button>
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* Symbol (add only) + name */}
+          <div className={isEdit ? '' : 'grid grid-cols-2 gap-2'}>
+            {!isEdit && (
+              <div>
+                <label className="text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.field.symbol')}</label>
+                <input
+                  value={symbol} onChange={(e) => setSymbol(e.target.value)} onBlur={prefillPrice}
+                  placeholder={market === 'US' ? 'AAPL' : market === 'HK' ? '0700.HK' : market === 'JP' ? '7203.T' : '600519.SS'}
+                  className="mt-1.5 w-full rounded-md border border-ink-200 bg-card px-3 py-2 text-[16px] font-mono outline-none focus:border-ink-900 placeholder:text-ink-300"
+                />
+              </div>
+            )}
             <div>
               <label className="text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.field.name')}</label>
               <input
@@ -385,7 +431,7 @@ function AddHoldingModal({ onClose, onAdd }: { onClose: () => void; onAdd: (h: P
           </div>
 
           <button onClick={submit} disabled={!canSubmit} className="btn-accent w-full py-3 font-medium text-[14px] disabled:opacity-40">
-            {t('portfolio.confirmAdd')}
+            {t(isEdit ? 'portfolio.save' : 'portfolio.confirmAdd')}
           </button>
         </div>
       </div>
