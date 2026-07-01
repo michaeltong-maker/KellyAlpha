@@ -168,7 +168,7 @@ export function PortfolioView() {
     <div className="flex-1 min-h-0 flex flex-col bg-paper relative">
       {/* Portfolio summary header — today's % change is the headline, absolute below */}
       <div className="px-5 pt-3 pb-4 w-full max-w-3xl mx-auto border-b border-ink-200">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             <p className="kicker">{portfolio.name}</p>
             {totals.ready ? (
@@ -185,10 +185,10 @@ export function PortfolioView() {
             )}
           </div>
           <div className="text-right shrink-0">
-            <p className="font-mono text-[20px] text-ink-900 leading-none">
+            <p className="text-[12px] uppercase tracking-label text-ink-400 mb-0.5">{t('portfolio.total')} · USD</p>
+            <p className="font-mono text-[28px] text-ink-900 leading-none">
               {totals.ready ? fmtUsd(totals.totalUsd) : '—'}
             </p>
-            <p className="text-[11px] uppercase tracking-label text-ink-400 mt-1">{t('portfolio.total')} · USD</p>
           </div>
         </div>
       </div>
