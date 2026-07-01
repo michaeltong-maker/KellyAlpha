@@ -26,7 +26,7 @@ export function MarketplaceAgent() {
   const { id = '' } = useParams();
   const nav = useNavigate();
   const t = useT();
-  const { agents, setAgents, setChats, setResults, watchlist, persisted, updatePersisted } = useApp();
+  const { agents, setAgents, setChats, setResults, watchlists, persisted, updatePersisted } = useApp();
   const agent = useMemo(() => agents.find((a) => a.id === id), [agents, id]);
 
   // Hiring is one-time per analyst: the user either has it on their desk or
@@ -87,7 +87,7 @@ export function MarketplaceAgent() {
     setAgents((list) => [copy, ...list.map((a) => a.id === agent.id ? { ...a, duplicates: a.duplicates + 1 } : a)]);
     // File a first report straight away so the chat lands on a real dossier
     // (the aha) rather than an empty welcome.
-    const firstReport = createRunResult(copy, watchlist);
+    const firstReport = createRunResult(copy, watchlists.flatMap((l) => l.stocks));
     setResults((rs) => [firstReport, ...rs]);
     setChats((c) => [
       ...c,

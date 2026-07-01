@@ -1,4 +1,4 @@
-import type { Market, WatchStock } from '../types';
+import type { Currency, Market, WatchStock } from '../types';
 
 // Stooq symbol conversion. Stooq CSV API supports CORS.
 // US: AAPL -> aapl.us  | HK: 0700.HK -> 0700.hk  | JP: 7203.T -> 7203.jp
@@ -73,6 +73,28 @@ export function syntheticQuote(stock: WatchStock): Quote {
 
 export const currencyFor = (m: Market): string =>
   m === 'US' ? '$' : m === 'HK' ? 'HK$' : m === 'JP' ? '¥' : '¥';
+
+// The native trading/quote currency for a market.
+export const currencyForMarket = (m: Market): Currency =>
+  m === 'US' ? 'USD' : m === 'HK' ? 'HKD' : m === 'JP' ? 'JPY' : 'CNY';
+
+// Display symbol for a currency code (distinct CN¥ vs JP¥ so mixed lists read clearly).
+export const currencySymbol = (c: Currency): string =>
+  c === 'USD' ? '$' : c === 'HKD' ? 'HK$' : c === 'JPY' ? 'JP¥' : 'CN¥';
+
+// Approximate FX to USD. Static table — the app has no backend, so this mirrors
+// the synthetic-quote philosophy: plausible, deterministic, good enough for a
+// prototype. HKD is USD-pegged (~7.8); JPY/CNY are rough spot. Swap for a live
+// rate provider before public launch.
+const USD_PER: Record<Currency, number> = {
+  USD: 1,
+  HKD: 1 / 7.8,
+  JPY: 1 / 157,
+  CNY: 1 / 7.25,
+};
+
+// Convert an amount in `ccy` to USD.
+export const toUsd = (amount: number, ccy: Currency): number => amount * USD_PER[ccy];
 
 // Deterministic intraday sparkline series for a ticker. Walks from the prior
 // close to the given price (so the shape agrees with the day's % change) with

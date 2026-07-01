@@ -16,10 +16,14 @@ function marketLabel(m: string) {
 export function StockDetail() {
   const { symbol = '' } = useParams();
   const decoded = decodeURIComponent(symbol);
-  const { watchlist, setWatchlist } = useApp();
+  const { watchlists, removeFromWatchlists } = useApp();
   const t = useT();
   const [confirm, setConfirm] = useState(false);
-  const s = useMemo(() => watchlist.find((x) => x.symbol === decoded), [watchlist, decoded]);
+  // A stock may live in several lists; find its first occurrence across all of them.
+  const s = useMemo(
+    () => watchlists.flatMap((l) => l.stocks).find((x) => x.symbol === decoded),
+    [watchlists, decoded],
+  );
 
   if (!s) return (
     <div className="flex-1 min-h-0 flex flex-col bg-paper">
@@ -39,7 +43,7 @@ export function StockDetail() {
   const sinceAdd = live.price && live.closeOnAdd ? ((live.price - live.closeOnAdd) / live.closeOnAdd) * 100 : undefined;
 
   const remove = () => {
-    setWatchlist((cur) => cur.filter((x) => x.symbol !== s.symbol));
+    removeFromWatchlists(s.symbol);
     history.back();
   };
 

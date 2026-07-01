@@ -10,8 +10,10 @@ import { useApp } from '../hooks/useApp';
 import { useT } from '../lib/i18n';
 
 export function SampleOutput({ agent }: { agent: Agent }) {
-  const { watchlist } = useApp();
+  const { watchlists } = useApp();
   const t = useT();
+  // Ticker pool across every watchlist — feeds realistic symbols into the sample.
+  const watchlist = useMemo(() => watchlists.flatMap((l) => l.stocks), [watchlists]);
   // Deterministic sample result for this agent (with live stock prices when available).
   const result = useMemo(() => createSampleResult(agent, watchlist), [agent.id, watchlist]);
   const [open, setOpen] = useState(false);

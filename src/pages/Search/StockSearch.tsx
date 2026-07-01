@@ -22,7 +22,7 @@ function genDate(iso: string): string {
 export function StockSearch() {
   const t = useT();
   const isDesktop = useIsDesktop();
-  const { watchlist, setWatchlist } = useApp();
+  const { watchlists, addToWatchlist } = useApp();
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [stock, setStock] = useState<DirectoryStock | null>(null);
@@ -75,8 +75,9 @@ export function StockSearch() {
   // "Other reports" = the public archive minus the latest already shown as the summary.
   const otherReports = useMemo(() => publicReports.filter((r) => r.id !== latest?.id), [publicReports, latest]);
 
-  const inWatchlist = !!stock && watchlist.some((w) => w.symbol.toLowerCase() === stock.symbol.toLowerCase());
-  const addToWatchlist = () => {
+  // Membership across any list; the add bubble always files into the default list.
+  const inWatchlist = !!stock && watchlists.some((l) => l.stocks.some((w) => w.symbol.toLowerCase() === stock.symbol.toLowerCase()));
+  const handleAddToWatchlist = () => {
     if (!stock || inWatchlist) return;
     const w: WatchStock = {
       symbol: stock.symbol,
@@ -87,7 +88,7 @@ export function StockSearch() {
       price: quote?.price,
       changePct: quote?.changePct,
     };
-    setWatchlist((cur) => [w, ...cur]);
+    addToWatchlist(w);
   };
 
   const ccy = stock ? currencyFor(stock.market) : '';
@@ -157,7 +158,7 @@ export function StockSearch() {
                   {generating ? t('stocksearch.generating') : t('stocksearch.refresh')}
                 </button>
                 <button
-                  onClick={addToWatchlist}
+                  onClick={handleAddToWatchlist}
                   disabled={inWatchlist}
                   className={`shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-sm text-[14px] font-medium border transition-colors duration-200 ease-out-expo ${
                     inWatchlist

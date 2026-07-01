@@ -163,6 +163,47 @@ export interface WatchStock {
   low52?: number;
 }
 
+// A named watchlist. There is always exactly one default list: the "add to
+// watchlist" bubble across the app files into it, and it cannot be deleted.
+export interface Watchlist {
+  id: string;
+  name: string;
+  isDefault?: boolean;
+  stocks: WatchStock[];
+}
+
+// ISO 4217 codes we support for purchase entry. A holding's *current* price is
+// always quoted in its market's native currency; a lot's `currency` is only the
+// currency the user recorded the purchase price in (defaults to native).
+export type Currency = 'USD' | 'HKD' | 'JPY' | 'CNY';
+
+// A single purchase tranche of a holding. Buying more of the same stock adds
+// another lot rather than mutating the first — so cost basis stays auditable.
+export interface Lot {
+  id: string;
+  date: string;        // ISO date of purchase
+  quantity: number;    // shares bought in this lot
+  price: number;       // purchase price per share, in `currency`
+  currency: Currency;
+}
+
+// One position in the portfolio: a symbol plus one or more purchase lots.
+export interface PortfolioHolding {
+  symbol: string;
+  market: Market;
+  name: string;
+  lots: Lot[];
+  // Live fields (filled at runtime from the quote feed)
+  price?: number;      // current price, native market currency
+  changePct?: number;  // today's move
+}
+
+export interface Portfolio {
+  id: string;
+  name: string;
+  holdings: PortfolioHolding[];
+}
+
 export interface Profile {
   name: string;
   email: string;
