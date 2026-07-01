@@ -220,7 +220,8 @@ export function WatchlistView() {
             }`}
           >
             <ArrowUpDown size={14} className={sortBy === 'added' ? 'text-ink-500' : 'text-accent'} />
-            <span className="whitespace-nowrap">{t(SORT_OPTIONS.find((o) => o.key === sortBy)!.labelKey)}</span>
+            {/* Label hides on narrow screens so the watchlist name keeps its room. */}
+            <span className="hidden min-[480px]:inline whitespace-nowrap">{t(SORT_OPTIONS.find((o) => o.key === sortBy)!.labelKey)}</span>
             <ChevronDown size={14} className="opacity-60" />
           </button>
           {sortOpen && (
