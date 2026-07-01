@@ -167,29 +167,27 @@ export function PortfolioView() {
     <div className="flex-1 min-h-0 flex flex-col bg-paper relative">
       {/* Portfolio summary header — today's % change is the headline, absolute below */}
       <div className="px-5 pt-3 pb-4 w-full max-w-3xl mx-auto border-b border-ink-200">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="kicker">{portfolio.name}</p>
-            {totals.ready ? (
-              <>
-                <p className="font-mono text-[28px] text-ink-900 leading-none mt-1">{fmtUsd(totals.totalUsd)}</p>
-                <p className="text-[12px] uppercase tracking-label text-ink-400 mt-1">{t('portfolio.total')} · USD</p>
-              </>
-            ) : (
-              <span className="inline-block h-8 w-32 rounded bg-ink-100 animate-pulse align-middle mt-1" aria-hidden />
-            )}
-          </div>
-          {totals.ready && (
-            <div className="text-right shrink-0">
+        <p className="kicker">{portfolio.name}</p>
+        {totals.ready ? (
+          <>
+            {/* Big numbers on one baseline: total value (left) · today % (right) */}
+            <div className="flex items-baseline justify-between gap-3 mt-1">
+              <p className="font-mono text-[28px] text-ink-900 leading-none">{fmtUsd(totals.totalUsd)}</p>
               <p className={`font-display text-[34px] font-medium leading-none ${totals.changeUsd >= 0 ? 'text-success' : 'text-danger'}`}>
                 {pct(totals.changePct)}
               </p>
-              <p className={`font-mono text-[15px] mt-1 ${totals.changeUsd >= 0 ? 'text-success' : 'text-danger'}`}>
+            </div>
+            {/* Small captions on one baseline: label (left) · $ change (right) */}
+            <div className="flex items-baseline justify-between gap-3 mt-1">
+              <p className="text-[12px] uppercase tracking-label text-ink-400">{t('portfolio.total')} · USD</p>
+              <p className={`font-mono text-[12px] ${totals.changeUsd >= 0 ? 'text-success' : 'text-danger'}`}>
                 {totals.changeUsd >= 0 ? '+' : ''}{fmtUsd(Math.abs(totals.changeUsd))} <span className="text-ink-400">{t('portfolio.vsYesterday')}</span>
               </p>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <span className="inline-block h-8 w-32 rounded bg-ink-100 animate-pulse align-middle mt-1" aria-hidden />
+        )}
       </div>
 
       {/* Sort toolbar */}
