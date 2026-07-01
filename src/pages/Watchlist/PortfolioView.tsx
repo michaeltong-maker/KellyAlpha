@@ -3,14 +3,26 @@ import { useApp } from '../../hooks/useApp';
 import { fetchQuote, syntheticQuote, currencyForMarket, currencySymbol, toUsd } from '../../lib/stocks';
 import { fmtPrice, pct } from '../../lib/format';
 import { ConfirmDeleteSheet } from '../../components/ConfirmDeleteSheet';
-import { Plus, X, Trash2 } from 'lucide-react';
+import { Plus, X, Trash2, ArrowUpDown, ChevronDown, Check } from 'lucide-react';
 import type { Currency, Lot, Market, PortfolioHolding } from '../../types';
-import { useT } from '../../lib/i18n';
+import { useT, type MessageKey } from '../../lib/i18n';
 
 const MARKETS: Market[] = ['US', 'HK', 'JP', 'CN'];
 const CURRENCIES: Currency[] = ['USD', 'HKD', 'JPY', 'CNY'];
 const marketLabel = (m: Market) => (m === 'US' ? 'US' : m === 'HK' ? 'HK' : m === 'JP' ? 'JP' : 'A-Share');
 const todayISO = () => new Date().toISOString().slice(0, 10);
+
+type SortKey = 'alloc' | 'name' | 'date' | 'today';
+const SORT_OPTIONS: { key: SortKey; labelKey: MessageKey }[] = [
+  { key: 'alloc', labelKey: 'portfolio.sort.alloc' },
+  { key: 'name',  labelKey: 'portfolio.sort.name' },
+  { key: 'date',  labelKey: 'portfolio.sort.date' },
+  { key: 'today', labelKey: 'portfolio.sort.today' },
+];
+
+// Earliest purchase date across a holding's lots (ISO strings compare lexically).
+const earliestLotDate = (h: PortfolioHolding) =>
+  h.lots.reduce((min, l) => (l.date < min ? l.date : min), h.lots[0]?.date ?? '9999');
 
 // Derived per-holding figures, all reconciled to a single reporting currency (USD)
 // for the total and allocation, with native values kept for display.
@@ -50,9 +62,22 @@ export function PortfolioView() {
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<PortfolioHolding | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<PortfolioHolding | null>(null);
+  const [sortBy, setSortBy] = useState<SortKey>('alloc');
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   const holdingsRef = useRef(portfolio.holdings);
   holdingsRef.current = portfolio.holdings;
+
+  // Dismiss the sort menu on outside click.
+  useEffect(() => {
+    if (!sortOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [sortOpen]);
 
   // Live price refresh for every holding, on mount + every 60s.
   useEffect(() => {
@@ -101,6 +126,17 @@ export function PortfolioView() {
     return { totalUsd, changeUsd, changePct, ready: priced > 0 };
   }, [calcs]);
 
+  const sortedCalcs = useMemo(() => {
+    const arr = [...calcs];
+    switch (sortBy) {
+      case 'name':  arr.sort((a, b) => a.h.name.localeCompare(b.h.name)); break;
+      case 'date':  arr.sort((a, b) => earliestLotDate(a.h).localeCompare(earliestLotDate(b.h))); break;
+      case 'today': arr.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity)); break;
+      case 'alloc': default: arr.sort((a, b) => (b.mktValueUsd ?? -1) - (a.mktValueUsd ?? -1)); break;
+    }
+    return arr;
+  }, [calcs, sortBy]);
+
   const addHolding = (h: PortfolioHolding) => {
     setPortfolio((p) => {
       // Merge lots into an existing holding of the same symbol, else append.
@@ -130,37 +166,71 @@ export function PortfolioView() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-paper relative">
-      {/* Portfolio summary header */}
+      {/* Portfolio summary header — today's % change is the headline, absolute below */}
       <div className="px-5 pt-3 pb-4 w-full max-w-3xl mx-auto border-b border-ink-200">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="kicker">{portfolio.name}</p>
-            <p className="font-display text-[34px] font-medium text-ink-900 leading-none mt-1">
-              {totals.ready ? fmtUsd(totals.totalUsd) : <span className="inline-block h-8 w-40 rounded bg-ink-100 animate-pulse align-middle" aria-hidden />}
-            </p>
-            <p className="text-[12px] text-ink-500 mt-1">{t('portfolio.total')} · USD</p>
+            {totals.ready ? (
+              <>
+                <p className={`font-display text-[34px] font-medium leading-none mt-1 ${totals.changeUsd >= 0 ? 'text-success' : 'text-danger'}`}>
+                  {pct(totals.changePct)}
+                </p>
+                <p className={`font-mono text-[15px] mt-1 ${totals.changeUsd >= 0 ? 'text-success' : 'text-danger'}`}>
+                  {totals.changeUsd >= 0 ? '+' : ''}{fmtUsd(Math.abs(totals.changeUsd))} <span className="text-ink-400">{t('portfolio.vsYesterday')}</span>
+                </p>
+              </>
+            ) : (
+              <span className="inline-block h-8 w-32 rounded bg-ink-100 animate-pulse align-middle mt-1" aria-hidden />
+            )}
           </div>
-          {totals.ready && (
-            <div className="text-right shrink-0">
-              <p className={`font-mono text-[18px] ${totals.changeUsd >= 0 ? 'text-success' : 'text-danger'}`}>
-                {totals.changeUsd >= 0 ? '+' : ''}{fmtUsd(Math.abs(totals.changeUsd))}
-              </p>
-              <p className={`font-mono text-[13px] ${totals.changeUsd >= 0 ? 'text-success' : 'text-danger'}`}>{pct(totals.changePct)}</p>
-              <p className="text-[11px] text-ink-400 mt-0.5">{t('portfolio.vsYesterday')}</p>
-            </div>
-          )}
-        </div>
-        <div className="mt-3 flex justify-end">
-          <button onClick={() => setShowAdd(true)} className="btn-accent inline-flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-medium">
-            <Plus size={16} /> {t('portfolio.add')}
-          </button>
+          <div className="text-right shrink-0">
+            <p className="font-mono text-[20px] text-ink-900 leading-none">
+              {totals.ready ? fmtUsd(totals.totalUsd) : '—'}
+            </p>
+            <p className="text-[11px] uppercase tracking-label text-ink-400 mt-1">{t('portfolio.total')} · USD</p>
+          </div>
         </div>
       </div>
 
-      {/* Holdings cards */}
+      {/* Sort toolbar */}
+      <div className="px-4 py-2 w-full max-w-3xl mx-auto flex items-center justify-end">
+        <div className="relative shrink-0" ref={sortRef}>
+          <button
+            onClick={() => setSortOpen((v) => !v)}
+            aria-label={t('portfolio.sort.label')}
+            className={`inline-flex items-center gap-1.5 h-7 pl-2.5 pr-2 rounded-pill border text-[12px] transition-colors duration-200 ${
+              sortBy === 'alloc' ? 'border-ink-200 text-ink-700 hover:border-ink-300' : 'border-accent/40 bg-accent-soft text-accent font-medium'
+            }`}
+          >
+            <ArrowUpDown size={12} className={sortBy === 'alloc' ? 'text-ink-500' : 'text-accent'} />
+            <span className="whitespace-nowrap">{t(SORT_OPTIONS.find((o) => o.key === sortBy)!.labelKey)}</span>
+            <ChevronDown size={12} className="opacity-60" />
+          </button>
+          {sortOpen && (
+            <div className="absolute right-0 top-[calc(100%+6px)] z-30 w-48 rounded-lg border border-ink-200 bg-card shadow-overlay p-1 animate-fade-rise">
+              <p className="px-2.5 pt-1.5 pb-1 text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.sort.label')}</p>
+              {SORT_OPTIONS.map((o) => (
+                <button
+                  key={o.key}
+                  onClick={() => { setSortBy(o.key); setSortOpen(false); }}
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-[13px] transition-colors ${
+                    o.key === sortBy ? 'text-accent font-medium' : 'text-ink-700 hover:bg-ink-50'
+                  }`}
+                >
+                  <span>{t(o.labelKey)}</span>
+                  {o.key === sortBy && <Check size={14} />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Holdings cards + Add button at the bottom of the list */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <ul className="px-3 py-2 w-full max-w-3xl mx-auto space-y-2.5">
-          {calcs.map((c) => (
+        <ul className="px-3 pt-1 pb-2 w-full max-w-3xl mx-auto space-y-2.5">
+          {sortedCalcs.map((c) => (
             <HoldingCard
               key={c.h.symbol}
               c={c}
@@ -169,10 +239,18 @@ export function PortfolioView() {
               onRemove={() => setConfirmRemove(c.h)}
             />
           ))}
-          {calcs.length === 0 && (
+          {sortedCalcs.length === 0 && (
             <li className="text-center text-ink-500 text-[15px] py-12">{t('portfolio.empty')}</li>
           )}
         </ul>
+        <div className="px-3 pb-4 w-full max-w-3xl mx-auto">
+          <button
+            onClick={() => setShowAdd(true)}
+            className="w-full py-3 rounded-md border border-dashed border-ink-300 text-ink-700 text-[14px] font-medium inline-flex items-center justify-center gap-1.5 hover:border-accent hover:text-accent transition-colors"
+          >
+            <Plus size={16} /> {t('portfolio.add')}
+          </button>
+        </div>
       </div>
 
       {showAdd && <HoldingModal mode="add" onClose={() => setShowAdd(false)} onSubmit={addHolding} />}
