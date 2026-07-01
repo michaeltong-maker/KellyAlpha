@@ -105,7 +105,7 @@ export function WatchlistView() {
   }, [activeListId]);
 
   // Reset transient view state when switching lists.
-  useEffect(() => { exitMove(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [activeListId]);
+  useEffect(() => { exitMove(); }, [activeListId]);
 
   const sorted = useMemo(() => {
     const arr = [...activeList.stocks];
@@ -142,7 +142,11 @@ export function WatchlistView() {
   // ---- Move mode ----
   function exitMove() { setMoveMode(false); setSelected(new Set()); setMoveTargetOpen(false); }
   const toggleSelect = (symbol: string) =>
-    setSelected((cur) => { const n = new Set(cur); n.has(symbol) ? n.delete(symbol) : n.add(symbol); return n; });
+    setSelected((cur) => {
+      const n = new Set(cur);
+      if (n.has(symbol)) n.delete(symbol); else n.add(symbol);
+      return n;
+    });
 
   const doMove = (targetId: string) => {
     const moving = activeList.stocks.filter((s) => selected.has(s.symbol));
