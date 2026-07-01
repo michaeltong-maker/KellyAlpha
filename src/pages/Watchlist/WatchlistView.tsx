@@ -22,22 +22,17 @@ function marketBadge(s: WatchStock) {
   return 'CN';
 }
 
-const MARKET_LONG_KEY: Record<Market, MessageKey> = {
-  US: 'market.us.long',
-  HK: 'market.hk.long',
-  JP: 'market.jp.long',
-  CN: 'market.cn.long',
-};
-
 const MARKETS: Market[] = ['US', 'HK', 'JP', 'CN'];
+const MARKET_ORDER: Record<Market, number> = { US: 0, HK: 1, JP: 2, CN: 3 };
 
-type SortKey = 'added' | 'gainers' | 'losers' | 'marketCap' | 'name';
+type SortKey = 'added' | 'gainers' | 'losers' | 'marketCap' | 'name' | 'market';
 const SORT_OPTIONS: { key: SortKey; labelKey: MessageKey }[] = [
   { key: 'added',     labelKey: 'watchlist.sort.added' },
   { key: 'gainers',   labelKey: 'watchlist.sort.gainers' },
   { key: 'losers',    labelKey: 'watchlist.sort.losers' },
   { key: 'marketCap', labelKey: 'watchlist.sort.marketCap' },
   { key: 'name',      labelKey: 'watchlist.sort.name' },
+  { key: 'market',    labelKey: 'watchlist.sort.market' },
 ];
 
 export function WatchlistView() {
@@ -52,7 +47,6 @@ export function WatchlistView() {
   }, [watchlists, activeListId, defaultId]);
   const activeList = watchlists.find((l) => l.id === activeListId) ?? watchlists[0];
 
-  const [selectedMarkets, setSelectedMarkets] = useState<Market[]>([]);
   const [sortBy, setSortBy] = useState<SortKey>('added');
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -111,25 +105,20 @@ export function WatchlistView() {
   }, [activeListId]);
 
   // Reset transient view state when switching lists.
-  useEffect(() => { setSelectedMarkets([]); exitMove(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [activeListId]);
-
-  const toggleMarket = (m: Market) =>
-    setSelectedMarkets((cur) => (cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m]));
+  useEffect(() => { exitMove(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [activeListId]);
 
   const sorted = useMemo(() => {
-    const base = selectedMarkets.length === 0
-      ? activeList.stocks
-      : activeList.stocks.filter((s) => selectedMarkets.includes(s.market));
-    const arr = [...base];
+    const arr = [...activeList.stocks];
     switch (sortBy) {
       case 'gainers':   arr.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity)); break;
       case 'losers':    arr.sort((a, b) => (a.changePct ??  Infinity) - (b.changePct ??  Infinity)); break;
       case 'marketCap': arr.sort((a, b) => (b.mktCapUsd ?? -1) - (a.mktCapUsd ?? -1)); break;
       case 'name':      arr.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'market':    arr.sort((a, b) => MARKET_ORDER[a.market] - MARKET_ORDER[b.market] || a.name.localeCompare(b.name)); break;
       case 'added':     default: break;
     }
     return arr;
-  }, [activeList, selectedMarkets, sortBy]);
+  }, [activeList, sortBy]);
 
   const listCount = (n: number) => t(n === 1 ? 'watchlist.count.one' : 'watchlist.count.many', { n });
 
@@ -217,6 +206,38 @@ export function WatchlistView() {
 
         <div className="flex-1" />
 
+        {/* Sort — same size as Move, sits to its left */}
+        <div className="relative shrink-0" ref={sortRef}>
+          <button
+            onClick={() => setSortOpen((v) => !v)}
+            aria-label={t('watchlist.sort.label')}
+            className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-pill border text-[13px] transition-colors duration-200 ${
+              sortBy === 'added' ? 'border-ink-200 text-ink-700 hover:border-ink-300' : 'border-accent/40 bg-accent-soft text-accent font-medium'
+            }`}
+          >
+            <ArrowUpDown size={14} className={sortBy === 'added' ? 'text-ink-500' : 'text-accent'} />
+            <span className="whitespace-nowrap">{t(SORT_OPTIONS.find((o) => o.key === sortBy)!.labelKey)}</span>
+            <ChevronDown size={14} className="opacity-60" />
+          </button>
+          {sortOpen && (
+            <div className="absolute right-0 top-[calc(100%+6px)] z-30 w-48 rounded-lg border border-ink-200 bg-card shadow-overlay p-1 animate-fade-rise">
+              <p className="px-2.5 pt-1.5 pb-1 text-[11px] uppercase tracking-label text-ink-500">{t('watchlist.sort.label')}</p>
+              {SORT_OPTIONS.map((o) => (
+                <button
+                  key={o.key}
+                  onClick={() => { setSortBy(o.key); setSortOpen(false); }}
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-[13px] transition-colors ${
+                    o.key === sortBy ? 'text-accent font-medium' : 'text-ink-700 hover:bg-ink-50'
+                  }`}
+                >
+                  <span>{t(o.labelKey)}</span>
+                  {o.key === sortBy && <Check size={14} />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Move toggle */}
         <button
           onClick={() => (moveMode ? exitMove() : setMoveMode(true))}
@@ -237,57 +258,6 @@ export function WatchlistView() {
         >
           <Plus size={18} />
         </button>
-      </div>
-
-      {/* Market filter chips + sort */}
-      <div className="px-4 pb-2 w-full max-w-3xl mx-auto flex items-center gap-2">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar min-w-0 flex-1">
-          {MARKETS.map((m) => {
-            const active = selectedMarkets.includes(m);
-            return (
-              <button
-                key={m}
-                onClick={() => toggleMarket(m)}
-                className={`shrink-0 text-[12px] px-3 py-1 rounded-pill border transition-colors duration-200 ease-out-expo ${
-                  active
-                    ? 'bg-accent-soft text-accent border-accent/40 font-medium'
-                    : 'bg-transparent text-ink-500 border-ink-200 hover:border-ink-300 hover:text-ink-700'
-                }`}
-              >{t(MARKET_LONG_KEY[m])}</button>
-            );
-          })}
-        </div>
-
-        <div className="relative shrink-0" ref={sortRef}>
-          <button
-            onClick={() => setSortOpen((v) => !v)}
-            aria-label={t('watchlist.sort.label')}
-            className={`inline-flex items-center gap-1.5 h-7 pl-2.5 pr-2 rounded-pill border text-[12px] transition-colors duration-200 ${
-              sortBy === 'added' ? 'border-ink-200 text-ink-700 hover:border-ink-300' : 'border-accent/40 bg-accent-soft text-accent font-medium'
-            }`}
-          >
-            <ArrowUpDown size={12} className={sortBy === 'added' ? 'text-ink-500' : 'text-accent'} />
-            <span className="whitespace-nowrap">{t(SORT_OPTIONS.find((o) => o.key === sortBy)!.labelKey)}</span>
-            <ChevronDown size={12} className="opacity-60" />
-          </button>
-          {sortOpen && (
-            <div className="absolute right-0 top-[calc(100%+6px)] z-30 w-48 rounded-lg border border-ink-200 bg-card shadow-overlay p-1 animate-fade-rise">
-              <p className="px-2.5 pt-1.5 pb-1 text-[11px] uppercase tracking-label text-ink-500">{t('watchlist.sort.label')}</p>
-              {SORT_OPTIONS.map((o) => (
-                <button
-                  key={o.key}
-                  onClick={() => { setSortBy(o.key); setSortOpen(false); }}
-                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-[13px] transition-colors ${
-                    o.key === sortBy ? 'text-accent font-medium' : 'text-ink-700 hover:bg-ink-50'
-                  }`}
-                >
-                  <span>{t(o.labelKey)}</span>
-                  {o.key === sortBy && <Check size={14} />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {moveMode && (
@@ -346,9 +316,7 @@ export function WatchlistView() {
           })}
           {sorted.length === 0 && (
             <li className="text-center text-ink-500 text-[15px] py-10">
-              {selectedMarkets.length > 0
-                ? t('watchlist.empty.market', { markets: selectedMarkets.map((m) => t(MARKET_LONG_KEY[m])).join(' / ') })
-                : t('watchlist.empty.market', { markets: activeList.name })}
+              {t('watchlist.empty.market', { markets: activeList.name })}
             </li>
           )}
         </ul>
