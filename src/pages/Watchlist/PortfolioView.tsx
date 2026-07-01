@@ -8,7 +8,6 @@ import type { Currency, Lot, Market, PortfolioHolding } from '../../types';
 import { useT, type MessageKey } from '../../lib/i18n';
 
 const MARKETS: Market[] = ['US', 'HK', 'JP', 'CN'];
-const CURRENCIES: Currency[] = ['USD', 'HKD', 'JPY', 'CNY'];
 const marketLabel = (m: Market) => (m === 'US' ? 'US' : m === 'HK' ? 'HK' : m === 'JP' ? 'JP' : 'A-Share');
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -360,19 +359,15 @@ function HoldingModal({ mode, initial, onClose, onSubmit }: HoldingModalProps) {
   const [market, setMarket] = useState<Market>(initial?.market ?? 'US');
   const [symbol, setSymbol] = useState(initial?.symbol ?? '');
   const [name, setName] = useState(initial?.name ?? '');
-  const [currency, setCurrency] = useState<Currency>(initial?.lots[0]?.currency ?? 'USD');
-  const [currencyTouched, setCurrencyTouched] = useState(false);
   const [lots, setLots] = useState<DraftLot[]>(
     initial
       ? initial.lots.map((l) => ({ date: l.date, quantity: String(l.quantity), price: String(l.price) }))
       : [{ date: todayISO(), quantity: '', price: '' }],
   );
 
-  // Default the currency to the market's native currency until the user overrides.
-  const setMarketAndCcy = (m: Market) => {
-    setMarket(m);
-    if (!currencyTouched) setCurrency(currencyForMarket(m));
-  };
+  // Currency is not chosen — it follows the listing market (US→USD, HK→HKD, etc.)
+  // and shows as a small box on the purchase price.
+  const currency = currencyForMarket(market);
 
   // Prefill empty lot prices with the current quote when the symbol is entered.
   const prefillPrice = async () => {
@@ -429,7 +424,7 @@ function HoldingModal({ mode, initial, onClose, onSubmit }: HoldingModalProps) {
               <label className="text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.field.market')}</label>
               <div className="grid grid-cols-4 gap-1.5 mt-1.5">
                 {MARKETS.map((m) => (
-                  <button key={m} onClick={() => setMarketAndCcy(m)}
+                  <button key={m} onClick={() => setMarket(m)}
                     className={`py-2 rounded-md text-[14px] font-medium transition-colors ${market === m ? 'bg-accent-soft text-accent ring-1 ring-accent/40' : 'bg-ink-100 text-ink-700 hover:bg-ink-200/60'}`}>
                     {marketLabel(m)}
                   </button>
@@ -459,19 +454,6 @@ function HoldingModal({ mode, initial, onClose, onSubmit }: HoldingModalProps) {
             </div>
           </div>
 
-          {/* Currency */}
-          <div>
-            <label className="text-[11px] uppercase tracking-label text-ink-500">{t('portfolio.field.currency')}</label>
-            <div className="grid grid-cols-4 gap-1.5 mt-1.5">
-              {CURRENCIES.map((cc) => (
-                <button key={cc} onClick={() => { setCurrency(cc); setCurrencyTouched(true); }}
-                  className={`py-2 rounded-md text-[13px] font-medium transition-colors ${currency === cc ? 'bg-accent-soft text-accent ring-1 ring-accent/40' : 'bg-ink-100 text-ink-700 hover:bg-ink-200/60'}`}>
-                  {cc}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Lots */}
           <div className="space-y-2">
             {lots.map((l, i) => (
@@ -497,8 +479,12 @@ function HoldingModal({ mode, initial, onClose, onSubmit }: HoldingModalProps) {
                   </label>
                   <label className="block">
                     <span className="text-[10px] uppercase tracking-label text-ink-400">{t('portfolio.lot.price')}</span>
-                    <input inputMode="decimal" value={l.price} onChange={(e) => updateLot(i, { price: e.target.value })} placeholder="0.00"
-                      className="mt-1 w-full rounded-md border border-ink-200 bg-card px-2 py-1.5 text-[13px] font-mono outline-none focus:border-ink-900 placeholder:text-ink-300" />
+                    <div className="mt-1 flex items-stretch rounded-md border border-ink-200 focus-within:border-ink-900 overflow-hidden">
+                      {/* Currency box — set by the listing market, not chosen. */}
+                      <span className="px-1.5 flex items-center bg-ink-100 text-ink-500 text-[11px] font-mono whitespace-nowrap">{currencySymbol(currency)}</span>
+                      <input inputMode="decimal" value={l.price} onChange={(e) => updateLot(i, { price: e.target.value })} placeholder="0.00"
+                        className="flex-1 min-w-0 bg-card px-2 py-1.5 text-[13px] font-mono outline-none placeholder:text-ink-300" />
+                    </div>
                   </label>
                 </div>
               </div>
