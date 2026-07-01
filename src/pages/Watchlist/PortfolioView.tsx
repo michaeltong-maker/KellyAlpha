@@ -304,7 +304,7 @@ function HoldingCard({ c, allocationPct, onEdit, onRemove }: { c: HoldingCalc; a
         </div>
 
         {/* Line 2 — cost + market metrics grid */}
-        <div className="grid grid-cols-4 gap-2 mt-3">
+        <div className="grid grid-cols-4 gap-1.5 mt-3">
           <Metric label={t('portfolio.col.avgCost')} value={fmtPrice(c.avgCost, purchaseSym)} />
           <Metric label={t('portfolio.col.current')} value={c.price !== undefined ? fmtPrice(c.price, nativeSym) : '—'} />
           <Metric
@@ -334,9 +334,10 @@ function Metric({ label, value, sub, tone }: { label: string; value: string; sub
   const color = tone === 'up' ? 'text-success' : tone === 'down' ? 'text-danger' : 'text-ink-900';
   return (
     <div className="min-w-0">
-      <p className="text-[10px] uppercase tracking-label text-ink-400 truncate">{label}</p>
-      <p className={`font-mono text-[13px] ${color} truncate mt-0.5`}>{value}</p>
-      {sub && <p className="font-mono text-[11px] text-ink-400 truncate">{sub}</p>}
+      {/* Reserve two label lines so values stay aligned across columns on phones. */}
+      <p className="text-[9px] uppercase tracking-label text-ink-400 leading-tight min-h-[1.9em]">{label}</p>
+      <p className={`font-mono text-[11px] ${color} leading-snug break-words mt-0.5`}>{value}</p>
+      {sub && <p className="font-mono text-[10px] text-ink-400 leading-snug break-words">{sub}</p>}
     </div>
   );
 }
