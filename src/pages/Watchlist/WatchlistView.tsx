@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../hooks/useApp';
 import { fetchQuote, syntheticQuote, currencyFor } from '../../lib/stocks';
 import { fmtPrice, pct } from '../../lib/format';
-import { Image as ImageIcon, Plus, X, ArrowUpDown, ChevronDown, Check, ChevronsUpDown, FolderInput, ListChecks, Trash2, Star } from 'lucide-react';
-import type { Market, WatchStock } from '../../types';
+import { Image as ImageIcon, Plus, X, ArrowUpDown, ChevronDown, Check, ChevronsUpDown, FolderInput, ListChecks, Trash2, Settings2, Star } from 'lucide-react';
+import type { Market, WatchStock, Watchlist } from '../../types';
 import { useT, type MessageKey } from '../../lib/i18n';
 import { Sparkline } from '../../components/Sparkline';
 
@@ -54,6 +54,7 @@ export function WatchlistView() {
   const pickerRef = useRef<HTMLDivElement>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newListOpen, setNewListOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
 
   // Move mode: rows become selectable, then get relocated to another list.
   const [moveMode, setMoveMode] = useState(false);
@@ -139,6 +140,19 @@ export function WatchlistView() {
     setNewListOpen(false);
   };
 
+  // ---- Manage lists (rename / delete / add) ----
+  const renameList = (id: string, name: string) =>
+    setWatchlists((prev) => prev.map((l) => (l.id === id ? { ...l, name } : l)));
+
+  const deleteList = (id: string) => {
+    if (watchlists.find((l) => l.id === id)?.isDefault) return; // default is permanent
+    if (id === activeListId) setActiveListId(defaultId);
+    setWatchlists((prev) => prev.filter((l) => l.id !== id));
+  };
+
+  const addList = (name: string) =>
+    setWatchlists((prev) => [...prev, { id: 'wl-' + Date.now().toString(36), name, stocks: [] }]);
+
   // ---- Move mode ----
   function exitMove() { setMoveMode(false); setSelected(new Set()); setMoveTargetOpen(false); }
   const toggleSelect = (symbol: string) =>
@@ -210,6 +224,12 @@ export function WatchlistView() {
                 className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-[14px] text-accent hover:bg-ink-50 transition-colors"
               >
                 <Plus size={14} /> {t('watchlist.picker.new')}
+              </button>
+              <button
+                onClick={() => { setPickerOpen(false); setManageOpen(true); }}
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-[14px] text-ink-700 hover:bg-ink-50 transition-colors"
+              >
+                <Settings2 size={14} className="text-ink-500" /> {t('watchlist.manage')}
               </button>
             </div>
           )}
@@ -372,6 +392,16 @@ export function WatchlistView() {
         <NameListModal onClose={() => setNewListOpen(false)} onCreate={(name) => createList(name)} />
       )}
 
+      {manageOpen && (
+        <ManageListsModal
+          lists={watchlists}
+          onRename={renameList}
+          onDelete={deleteList}
+          onAdd={addList}
+          onClose={() => setManageOpen(false)}
+        />
+      )}
+
       {/* Move-target chooser */}
       {moveTargetOpen && (
         <div className="absolute inset-0 bg-ink-900/40 z-30 flex items-end" onClick={() => setMoveTargetOpen(false)}>
@@ -451,6 +481,75 @@ function NameListModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
         <div className="flex gap-2 mt-3">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-sm border border-ink-200 text-ink-700 text-[14px] font-medium">{t('watchlist.newList.cancel')}</button>
           <button onClick={submit} disabled={!name.trim()} className="flex-1 btn-accent py-2.5 text-[14px] font-medium disabled:opacity-40">{t('watchlist.newList.create')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Manage all watchlists: rename inline, delete (default is protected), add new.
+function ManageListsModal({
+  lists, onRename, onDelete, onAdd, onClose,
+}: {
+  lists: Watchlist[];
+  onRename: (id: string, name: string) => void;
+  onDelete: (id: string) => void;
+  onAdd: (name: string) => void;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const [newName, setNewName] = useState('');
+  const add = () => { if (newName.trim()) { onAdd(newName.trim()); setNewName(''); } };
+  return (
+    <div className="absolute inset-0 bg-ink-900/40 z-30 flex items-end" onClick={onClose}>
+      <div className="w-full bg-card rounded-t-lg shadow-sheet p-4 pb-[max(env(safe-area-inset-bottom),16px)] max-h-[88%] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display text-[20px] font-medium text-ink-900">{t('watchlist.manage')}</h3>
+          <button onClick={onClose} className="text-ink-500 hover:text-ink-900 transition-colors"><X size={18} /></button>
+        </div>
+
+        <div className="space-y-2">
+          {lists.map((l) => (
+            <div key={l.id} className="flex items-center gap-2">
+              {l.isDefault
+                ? <Star size={14} className="text-accent shrink-0" fill="currentColor" />
+                : <span className="w-[14px] shrink-0" />}
+              <input
+                value={l.name}
+                onChange={(e) => onRename(l.id, e.target.value)}
+                className="flex-1 min-w-0 rounded-md border border-ink-200 bg-card px-3 py-2 text-[15px] outline-none focus:border-ink-900"
+              />
+              <span className="text-[11px] text-ink-400 font-mono shrink-0 w-6 text-right">{l.stocks.length}</span>
+              <button
+                onClick={() => onDelete(l.id)}
+                disabled={l.isDefault}
+                aria-label={t('watchlist.delete')}
+                className="text-ink-400 hover:text-danger transition-colors p-1 shrink-0 disabled:opacity-25 disabled:hover:text-ink-400"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="my-3 border-t border-ink-200" />
+
+        {/* Add a new watchlist */}
+        <div className="flex items-center gap-2">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && add()}
+            placeholder={t('watchlist.newList.placeholder')}
+            className="flex-1 min-w-0 rounded-md border border-ink-200 bg-card px-3 py-2 text-[15px] outline-none focus:border-ink-900 placeholder:text-ink-300"
+          />
+          <button
+            onClick={add}
+            disabled={!newName.trim()}
+            className="btn-accent px-3 py-2 text-[14px] font-medium disabled:opacity-40 inline-flex items-center gap-1.5 shrink-0"
+          >
+            <Plus size={14} /> {t('watchlist.manage.add')}
+          </button>
         </div>
       </div>
     </div>
