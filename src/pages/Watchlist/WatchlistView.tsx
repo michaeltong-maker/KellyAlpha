@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../hooks/useApp';
 import { fetchQuote, syntheticQuote, currencyFor } from '../../lib/stocks';
 import { fmtPrice, pct } from '../../lib/format';
-import { Image as ImageIcon, Plus, X, ArrowUpDown, ChevronDown, Check, ChevronsUpDown, FolderInput, Star } from 'lucide-react';
+import { Image as ImageIcon, Plus, X, ArrowUpDown, ChevronDown, Check, ChevronsUpDown, FolderInput, ListChecks, Trash2, Star } from 'lucide-react';
 import type { Market, WatchStock } from '../../types';
 import { useT, type MessageKey } from '../../lib/i18n';
 import { Sparkline } from '../../components/Sparkline';
@@ -148,6 +148,13 @@ export function WatchlistView() {
       return n;
     });
 
+  const deleteSelected = () => {
+    setWatchlists((prev) =>
+      prev.map((l) => (l.id === activeListId ? { ...l, stocks: l.stocks.filter((s) => !selected.has(s.symbol)) } : l)),
+    );
+    exitMove();
+  };
+
   const doMove = (targetId: string) => {
     const moving = activeList.stocks.filter((s) => selected.has(s.symbol));
     setWatchlists((prev) =>
@@ -243,7 +250,7 @@ export function WatchlistView() {
           )}
         </div>
 
-        {/* Move toggle */}
+        {/* Select toggle — enter selection mode to move or delete stocks */}
         <button
           onClick={() => (moveMode ? exitMove() : setMoveMode(true))}
           disabled={!moveMode && activeList.stocks.length === 0}
@@ -251,7 +258,7 @@ export function WatchlistView() {
             moveMode ? 'border-accent/40 bg-accent-soft text-accent font-medium' : 'border-ink-200 text-ink-700 hover:border-ink-300'
           }`}
         >
-          {moveMode ? t('watchlist.move.done') : <><FolderInput size={14} /> {t('watchlist.move')}</>}
+          {moveMode ? t('watchlist.move.done') : <><ListChecks size={14} /> {t('watchlist.select')}</>}
         </button>
 
         {/* Add symbol */}
@@ -336,10 +343,19 @@ export function WatchlistView() {
           <div className="flex-1" />
           <button onClick={exitMove} className="text-[14px] text-ink-500 px-2 py-2">{t('watchlist.move.cancel')}</button>
           <button
+            onClick={deleteSelected}
+            disabled={selected.size === 0}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-danger/40 text-danger text-[14px] font-medium hover:bg-danger/5 transition-colors disabled:opacity-40"
+          >
+            <Trash2 size={14} /> {t('watchlist.delete')}
+          </button>
+          <button
             onClick={() => setMoveTargetOpen(true)}
             disabled={selected.size === 0}
-            className="btn-accent px-4 py-2 text-[14px] font-medium disabled:opacity-40"
-          >{t('watchlist.move.cta')}</button>
+            className="btn-accent inline-flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium disabled:opacity-40"
+          >
+            <FolderInput size={14} /> {t('watchlist.move.cta')}
+          </button>
         </div>
       )}
 
