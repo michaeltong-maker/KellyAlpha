@@ -41,7 +41,7 @@ const messages = {
     'stocksearch.inWatchlist': 'In watchlist',
     'stocksearch.readers': 'Read by {n} users',
     'stocksearch.trending': 'Trending search',
-    'stocksearch.previous': 'Previous search',
+    'stocksearch.previous': 'Recent search',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} result',
