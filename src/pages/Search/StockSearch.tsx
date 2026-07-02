@@ -14,6 +14,8 @@ import type { DirectoryStock } from '../../lib/stockDirectory';
 import type { WatchStock } from '../../types';
 import { createStockReport, type StockReport } from '../../lib/stockReport';
 import { loadReports, addReport } from '../../lib/stockReportStore';
+import { loadRecentSearches, addRecentSearch } from '../../lib/recentSearches';
+import { TRENDING_SEARCHES } from '../../data/seedTrending';
 
 function genDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -31,6 +33,7 @@ export function StockSearch() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false); // mobile: report full-screen overlay
+  const [recent, setRecent] = useState<DirectoryStock[]>(() => loadRecentSearches());
 
   // Pull a live quote for the selected stock (Stooq), falling back to the
   // deterministic synthetic model so the header never sits empty.
@@ -51,6 +54,7 @@ export function StockSearch() {
   const selectStock = (s: DirectoryStock) => {
     setSearchOpen(false);
     setStock(s);
+    setRecent(addRecentSearch(s)); // record for "Previous search"
     const list = loadReports(s.symbol);
     setReports(list);
     setSelectedId(list[0]?.id ?? null); // summary box "clicked" by default → latest
@@ -207,13 +211,20 @@ export function StockSearch() {
             </div>
           )}
 
-          {/* No stock selected yet */}
+          {/* No stock selected yet — CTA + trending / previous search bubbles */}
           {!stock && (
-            <div className="mt-10 flex flex-col items-center text-center gap-2 text-ink-500">
-              <Search size={28} strokeWidth={1.4} className="text-ink-300" />
-              <p className="text-[16px] font-medium text-ink-900">{t('stocksearch.searchCta')}</p>
-              <p className="text-[13px] max-w-xs">{t('stocksearch.searchHint')}</p>
-            </div>
+            <>
+              <div className="mt-8 flex flex-col items-center text-center gap-2 text-ink-500">
+                <Search size={28} strokeWidth={1.4} className="text-ink-300" />
+                <p className="text-[16px] font-medium text-ink-900">{t('stocksearch.searchCta')}</p>
+                <p className="text-[13px] max-w-xs">{t('stocksearch.searchHint')}</p>
+              </div>
+
+              <BubbleSection title={t('stocksearch.trending')} stocks={TRENDING_SEARCHES} onPick={selectStock} className="mt-8" />
+              {recent.length > 0 && (
+                <BubbleSection title={t('stocksearch.previous')} stocks={recent} onPick={selectStock} className="mt-6 pb-4" />
+              )}
+            </>
           )}
         </div>
 
@@ -290,5 +301,36 @@ export function StockSearch() {
         </div>
       )}
     </>
+  );
+}
+
+// A divider-headed section of stock-code bubbles (Trending / Previous search).
+function BubbleSection({
+  title, stocks, onPick, className = '',
+}: {
+  title: string;
+  stocks: DirectoryStock[];
+  onPick: (s: DirectoryStock) => void;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <div className="flex items-center gap-3 mb-2.5">
+        <span className="text-[11px] font-medium uppercase tracking-label text-ink-500 shrink-0">{title}</span>
+        <div className="flex-1 h-px bg-ink-200" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {stocks.map((s) => (
+          <button
+            key={s.symbol}
+            onClick={() => onPick(s)}
+            title={s.name}
+            className="text-[12px] font-mono px-3 py-1.5 rounded-pill border border-ink-200 text-ink-700 hover:border-accent hover:text-accent transition-colors"
+          >
+            {s.symbol}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

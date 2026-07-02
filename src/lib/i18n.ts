@@ -40,6 +40,8 @@ const messages = {
     'stocksearch.addWatchlist': 'Add to watchlist',
     'stocksearch.inWatchlist': 'In watchlist',
     'stocksearch.readers': 'Read by {n} users',
+    'stocksearch.trending': 'Trending search',
+    'stocksearch.previous': 'Previous search',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} result',
@@ -540,6 +542,8 @@ const messages = {
     'stocksearch.addWatchlist': '加入觀察清單',
     'stocksearch.inWatchlist': '已在觀察清單',
     'stocksearch.readers': '{n} 位使用者已閱讀',
+    'stocksearch.trending': '熱門搜尋',
+    'stocksearch.previous': '最近搜尋',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇報告',
@@ -1040,6 +1044,8 @@ const messages = {
     'stocksearch.addWatchlist': '加入自选',
     'stocksearch.inWatchlist': '已在自选',
     'stocksearch.readers': '{n} 位用户已阅读',
+    'stocksearch.trending': '热门搜索',
+    'stocksearch.previous': '最近搜索',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇报告',
