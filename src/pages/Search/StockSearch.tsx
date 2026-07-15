@@ -15,7 +15,7 @@ import type { WatchStock } from '../../types';
 import { createStockReport, type StockReport } from '../../lib/stockReport';
 import { loadReports, addReport } from '../../lib/stockReportStore';
 import { loadRecentSearches, addRecentSearch } from '../../lib/recentSearches';
-import { TRENDING_SEARCHES } from '../../data/seedTrending';
+import { TRENDING_SEARCHES, type TrendingItem } from '../../data/seedTrending';
 
 function genDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -220,9 +220,33 @@ export function StockSearch() {
                 <p className="text-[13px] max-w-xs">{t('stocksearch.searchHint')}</p>
               </div>
 
-              <BubbleSection title={t('stocksearch.trending')} stocks={TRENDING_SEARCHES} onPick={selectStock} className="mt-8" />
+              {/* Trending — top 5 as vertical rows with counts, the rest as horizontal bubbles */}
+              <div className="mt-8">
+                <SectionDivider title={t('stocksearch.trending')} />
+                <div className="mt-2.5 space-y-1.5">
+                  {TRENDING_SEARCHES.slice(0, 5).map((it, i) => (
+                    <TrendingRow key={it.stock.symbol} rank={i + 1} item={it} onPick={selectStock} />
+                  ))}
+                </div>
+                {TRENDING_SEARCHES.length > 5 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {TRENDING_SEARCHES.slice(5).map((it) => (
+                      <QuoteBubble key={it.stock.symbol} s={it.stock} onPick={selectStock} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Your recent searches — horizontal bubbles */}
               {recent.length > 0 && (
-                <BubbleSection title={t('stocksearch.previous')} stocks={recent} onPick={selectStock} className="mt-6 pb-4" />
+                <div className="mt-6 pb-4">
+                  <SectionDivider title={t('stocksearch.previous')} />
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {recent.map((s) => (
+                      <QuoteBubble key={s.symbol} s={s} onPick={selectStock} />
+                    ))}
+                  </div>
+                </div>
               )}
             </>
           )}
@@ -304,33 +328,56 @@ export function StockSearch() {
   );
 }
 
-// A divider-headed section of stock-code bubbles (Trending / Previous search).
-function BubbleSection({
-  title, stocks, onPick, className = '',
-}: {
-  title: string;
-  stocks: DirectoryStock[];
-  onPick: (s: DirectoryStock) => void;
-  className?: string;
-}) {
+// Divider header for the trending / recent sections.
+function SectionDivider({ title }: { title: string }) {
   return (
-    <div className={className}>
-      <div className="flex items-center gap-3 mb-2.5">
-        <span className="text-[11px] font-medium uppercase tracking-label text-ink-500 shrink-0">{title}</span>
-        <div className="flex-1 h-px bg-ink-200" />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {stocks.map((s) => (
-          <button
-            key={s.symbol}
-            onClick={() => onPick(s)}
-            title={s.name}
-            className="text-[12px] font-mono px-3 py-1.5 rounded-pill border border-ink-200 text-ink-700 hover:border-accent hover:text-accent transition-colors"
-          >
-            {s.symbol}
-          </button>
-        ))}
-      </div>
+    <div className="flex items-center gap-3">
+      <span className="text-[11px] font-medium uppercase tracking-label text-ink-500 shrink-0">{title}</span>
+      <div className="flex-1 h-px bg-ink-200" />
     </div>
+  );
+}
+
+// Illustrative quote for a bubble — deterministic synthetic model (no network),
+// so every bubble always shows a plausible price + change.
+function bubbleQuote(s: DirectoryStock): Quote {
+  return syntheticQuote({ symbol: s.symbol, market: s.market, name: s.name, addedAt: '', closeOnAdd: s.anchor });
+}
+
+// A compact pill bubble: stock code · price · today's change. Used horizontally.
+function QuoteBubble({ s, onPick }: { s: DirectoryStock; onPick: (s: DirectoryStock) => void }) {
+  const q = bubbleQuote(s);
+  const up = q.changePct >= 0;
+  return (
+    <button
+      onClick={() => onPick(s)}
+      title={s.name}
+      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-pill border border-ink-200 hover:border-accent transition-colors"
+    >
+      <span className="font-mono text-[12px] text-ink-900">{s.symbol}</span>
+      <span className="font-mono text-[12px] text-ink-500">{fmtPrice(q.price, currencyFor(s.market))}</span>
+      <span className={`font-mono text-[11px] ${up ? 'text-success' : 'text-danger'}`}>{pct(q.changePct)}</span>
+    </button>
+  );
+}
+
+// A full-width trending row: rank · code · price · change · search count.
+function TrendingRow({ rank, item, onPick }: { rank: number; item: TrendingItem; onPick: (s: DirectoryStock) => void }) {
+  const t = useT();
+  const s = item.stock;
+  const q = bubbleQuote(s);
+  const up = q.changePct >= 0;
+  return (
+    <button
+      onClick={() => onPick(s)}
+      title={s.name}
+      className="w-full flex items-center gap-3 px-3 py-2 rounded-md border border-ink-200 hover:border-accent transition-colors text-left"
+    >
+      <span className="text-[11px] font-mono text-ink-400 w-3 shrink-0">{rank}</span>
+      <span className="font-mono text-[13px] text-ink-900 shrink-0 w-[72px]">{s.symbol}</span>
+      <span className="font-mono text-[12px] text-ink-500">{fmtPrice(q.price, currencyFor(s.market))}</span>
+      <span className={`font-mono text-[12px] ${up ? 'text-success' : 'text-danger'}`}>{pct(q.changePct)}</span>
+      <span className="ml-auto text-[11px] text-ink-400 shrink-0">{t('stocksearch.searches', { n: item.count.toLocaleString() })}</span>
+    </button>
   );
 }

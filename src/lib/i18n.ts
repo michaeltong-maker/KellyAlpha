@@ -41,7 +41,8 @@ const messages = {
     'stocksearch.inWatchlist': 'In watchlist',
     'stocksearch.readers': 'Read by {n} users',
     'stocksearch.trending': 'Trending search',
-    'stocksearch.previous': 'Recent search',
+    'stocksearch.previous': 'Your recent searches',
+    'stocksearch.searches': '{n} searches',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} result',
@@ -543,7 +544,8 @@ const messages = {
     'stocksearch.inWatchlist': '已在觀察清單',
     'stocksearch.readers': '{n} 位使用者已閱讀',
     'stocksearch.trending': '熱門搜尋',
-    'stocksearch.previous': '最近搜尋',
+    'stocksearch.previous': '你的最近搜尋',
+    'stocksearch.searches': '{n} 次搜尋',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇報告',
@@ -1045,7 +1047,8 @@ const messages = {
     'stocksearch.inWatchlist': '已在自选',
     'stocksearch.readers': '{n} 位用户已阅读',
     'stocksearch.trending': '热门搜索',
-    'stocksearch.previous': '最近搜索',
+    'stocksearch.previous': '你的最近搜索',
+    'stocksearch.searches': '{n} 次搜索',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇报告',
