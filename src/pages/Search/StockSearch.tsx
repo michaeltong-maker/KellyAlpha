@@ -170,43 +170,44 @@ export function StockSearch() {
             </div>
           )}
 
-          {/* Latest-report summary box — selected by default */}
-          {stock && latest && (
-            <button
-              onClick={() => openReport(latest.id)}
-              className={`mt-5 w-full text-left rounded-lg border p-4 transition-colors ${
-                selectedId === latest.id ? 'border-accent/50 bg-accent-soft' : 'border-ink-200 bg-card hover:border-ink-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="kicker text-accent">{t('stocksearch.latest')}</span>
-                <span className="ml-auto text-[11px] font-mono text-ink-500">{t('stocksearch.generatedOn', { date: genDate(latest.at) })}</span>
-              </div>
-              <h3 className="font-display text-[17px] font-medium text-ink-900 leading-snug mt-1.5">{latest.title}</h3>
-              <p className="text-[13px] text-ink-500 leading-snug mt-1 line-clamp-3">{latest.summary}</p>
-              <div className="mt-2 flex items-center gap-1.5 text-[12px] text-ink-500">
-                <Eye size={13} className="text-ink-300" strokeWidth={1.8} />
-                <span>{t('stocksearch.readers', { n: latest.reads.toLocaleString() })}</span>
-              </div>
-            </button>
-          )}
-
-          {/* Empty state — stock selected, no reports yet */}
-          {stock && !latest && !generating && (
-            <div className="mt-6 rounded-lg border border-dashed border-ink-200 p-6 text-center">
-              <p className="text-[15px] font-medium text-ink-900">{t('stocksearch.noReports')}</p>
-              <p className="text-[13px] text-ink-500 mt-1">{t('stocksearch.noReportsHint', { symbol: stock.symbol })}</p>
+          {/* House Prompt divider — between the price card and the summary */}
+          {stock && (
+            <div className="mt-6 flex items-center gap-3">
+              <span className="text-[11px] font-medium uppercase tracking-label text-ink-500 shrink-0">{t('stocksearch.housePrompt')}</span>
+              <div className="flex-1 h-px bg-ink-200" />
             </div>
           )}
 
-          {/* House Prompt divider + actions (Refresh / Add to watchlist) */}
+          {/* Latest summary box — report summary (or empty state) with actions inside */}
           {stock && (
-            <div className="mt-6">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[11px] font-medium uppercase tracking-label text-ink-500 shrink-0">{t('stocksearch.housePrompt')}</span>
-                <div className="flex-1 h-px bg-ink-200" />
-              </div>
-              <div className="flex items-center gap-2">
+            <div className="mt-3 rounded-lg border border-ink-200 bg-card p-4">
+              {latest ? (
+                <button
+                  onClick={() => openReport(latest.id)}
+                  className={`w-full text-left -mx-1 -mt-1 px-1 pt-1 pb-1 rounded-md transition-colors ${
+                    selectedId === latest.id ? 'bg-accent-soft' : 'hover:bg-ink-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="kicker text-accent">{t('stocksearch.latest')}</span>
+                    <span className="ml-auto text-[11px] font-mono text-ink-500">{t('stocksearch.generatedOn', { date: genDate(latest.at) })}</span>
+                  </div>
+                  <h3 className="font-display text-[17px] font-medium text-ink-900 leading-snug mt-1.5">{latest.title}</h3>
+                  <p className="text-[13px] text-ink-500 leading-snug mt-1 line-clamp-3">{latest.summary}</p>
+                  <div className="mt-2 flex items-center gap-1.5 text-[12px] text-ink-500">
+                    <Eye size={13} className="text-ink-300" strokeWidth={1.8} />
+                    <span>{t('stocksearch.readers', { n: latest.reads.toLocaleString() })}</span>
+                  </div>
+                </button>
+              ) : (
+                <div className="text-center py-3">
+                  <p className="text-[15px] font-medium text-ink-900">{generating ? t('stocksearch.generating') : t('stocksearch.noReports')}</p>
+                  {!generating && <p className="text-[13px] text-ink-500 mt-1">{t('stocksearch.noReportsHint', { symbol: stock.symbol })}</p>}
+                </div>
+              )}
+
+              {/* Actions inside the summary box */}
+              <div className="mt-4 pt-3 border-t border-ink-200 flex items-center gap-2">
                 <button
                   onClick={onRefresh}
                   disabled={generating}
