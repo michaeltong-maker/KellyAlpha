@@ -7,6 +7,7 @@ import { ConfirmDeleteSheet } from '../../components/ConfirmDeleteSheet';
 import { countdown } from '../../lib/format';
 import { celebrateFiling } from '../../lib/celebrate';
 import { RunFiling } from '../../components/RunFiling';
+import { TrackRecord } from '../../components/TrackRecord';
 import type { Agent, Frequency, Result } from '../../types';
 import { useT, type MessageKey } from '../../lib/i18n';
 
@@ -488,6 +489,9 @@ export function AgentDetail() {
           <p className="text-[11px] uppercase tracking-label text-ink-500 mb-1">{t('agent.section.personality')}</p>
           <p className="text-[15px] text-ink-900">{agent.personality} · {agent.tone} · {agent.temperament}</p>
         </section>
+
+        {/* Track record — simulated performance of the agent's past calls */}
+        <TrackRecord agentId={agent.id} />
 
         {/* Version & updates */}
         <section className="px-4 py-3 border-b border-ink-200">
