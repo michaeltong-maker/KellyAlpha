@@ -178,36 +178,33 @@ export function StockSearch() {
             </div>
           )}
 
-          {/* Latest summary box — report summary (or empty state) with actions inside */}
+          {/* Latest summary box — accent-tinted card enclosing the summary + actions */}
           {stock && (
-            <div className="mt-3 rounded-lg border border-ink-200 bg-card p-4">
+            <div className="mt-3 relative overflow-hidden rounded-xl border border-accent/20 bg-accent-soft p-4 pl-5">
+              <span className="absolute left-0 inset-y-0 w-1 bg-accent" aria-hidden />
               {latest ? (
-                <button
-                  onClick={() => openReport(latest.id)}
-                  className={`w-full text-left -mx-1 -mt-1 px-1 pt-1 pb-1 rounded-md transition-colors ${
-                    selectedId === latest.id ? 'bg-accent-soft' : 'hover:bg-ink-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="kicker text-accent">{t('stocksearch.latest')}</span>
-                    <span className="ml-auto text-[11px] font-mono text-ink-500">{t('stocksearch.generatedOn', { date: genDate(latest.at) })}</span>
-                  </div>
-                  <h3 className="font-display text-[17px] font-medium text-ink-900 leading-snug mt-1.5">{latest.title}</h3>
-                  <p className="text-[13px] text-ink-500 leading-snug mt-1 line-clamp-3">{latest.summary}</p>
-                  <div className="mt-2 flex items-center gap-1.5 text-[12px] text-ink-500">
-                    <Eye size={13} className="text-ink-300" strokeWidth={1.8} />
-                    <span>{t('stocksearch.readers', { n: latest.reads.toLocaleString() })}</span>
+                <button onClick={() => openReport(latest.id)} className="w-full text-left block active:opacity-80 transition-opacity">
+                  <span className="kicker text-accent">{t('stocksearch.latest')}</span>
+                  <h3 className="font-display text-[19px] font-medium text-ink-900 leading-snug mt-1.5">{latest.title}</h3>
+                  <p className="text-[13px] text-ink-700 leading-snug mt-1.5 line-clamp-3">{latest.summary}</p>
+                  {/* Generated time (left) · views (right) — moved below the summary */}
+                  <div className="mt-3 pt-3 border-t border-accent/20 flex items-center justify-between text-[12px]">
+                    <span className="font-mono text-ink-500">{genDate(latest.at)}</span>
+                    <span className="inline-flex items-center gap-1.5 text-ink-500" title={t('stocksearch.readers', { n: latest.reads.toLocaleString() })}>
+                      <Eye size={13} className="text-ink-400" strokeWidth={1.8} />
+                      {latest.reads.toLocaleString()}
+                    </span>
                   </div>
                 </button>
               ) : (
                 <div className="text-center py-3">
                   <p className="text-[15px] font-medium text-ink-900">{generating ? t('stocksearch.generating') : t('stocksearch.noReports')}</p>
-                  {!generating && <p className="text-[13px] text-ink-500 mt-1">{t('stocksearch.noReportsHint', { symbol: stock.symbol })}</p>}
+                  {!generating && <p className="text-[13px] text-ink-700 mt-1">{t('stocksearch.noReportsHint', { symbol: stock.symbol })}</p>}
                 </div>
               )}
 
-              {/* Actions inside the summary box */}
-              <div className="mt-4 pt-3 border-t border-ink-200 flex items-center gap-2">
+              {/* Actions enclosed in the box */}
+              <div className="mt-4 flex items-center gap-2">
                 <button
                   onClick={onRefresh}
                   disabled={generating}
@@ -221,7 +218,7 @@ export function StockSearch() {
                   disabled={inWatchlist}
                   className={`shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-sm text-[14px] font-medium border transition-colors duration-200 ease-out-expo ${
                     inWatchlist
-                      ? 'border-ink-200 text-ink-500 bg-ink-50 cursor-default'
+                      ? 'border-ink-300 text-ink-500 bg-card/70 cursor-default'
                       : 'border-ink-900 text-ink-900 hover:bg-ink-900 hover:text-paper active:bg-ink-100'
                   }`}
                 >
@@ -231,7 +228,7 @@ export function StockSearch() {
                 </button>
               </div>
               <p className="mt-2 text-[12px] text-ink-500 leading-snug flex items-start gap-1.5">
-                <Coins size={13} className="mt-0.5 shrink-0 text-ink-300" strokeWidth={1.8} />
+                <Coins size={13} className="mt-0.5 shrink-0 text-ink-400" strokeWidth={1.8} />
                 <span>{t('stocksearch.creditsNote')}</span>
               </p>
             </div>
