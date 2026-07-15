@@ -99,6 +99,13 @@ export function totalAvg(calls: Call[]): number {
   return calls.length ? calls.reduce((s, c) => s + c.returnPct, 0) / calls.length : 0;
 }
 
+// The agent's headline avg-return-per-trade, or null when no performance is
+// tracked yet (~1 in 5 agents) — surfaced on the marketplace card.
+export function agentPerformance(agentId: string): number | null {
+  if (hash('perf|' + agentId) % 5 === 0) return null;
+  return totalAvg(buildTrackRecord(agentId));
+}
+
 export function firstCallDate(calls: Call[]): string {
   return calls.reduce((min, c) => (c.at < min ? c.at : min), calls[0]?.at ?? new Date().toISOString());
 }
