@@ -6,12 +6,37 @@ import { useT } from '../../lib/i18n';
 import { Search, RefreshCw, FileText, X, ChevronRight, Plus, Check, Coins, Eye } from 'lucide-react';
 import { StockSearchModal } from '../../components/StockSearchModal';
 import { StockReportPane } from '../../components/StockReportPane';
+import { ResultViewerModal } from '../../components/ResultViewerModal';
 import { MarketStatusPill } from '../../components/MarketStatusPill';
 import { Sparkline } from '../../components/Sparkline';
 import { fetchQuote, syntheticQuote, currencyFor, type Quote } from '../../lib/stocks';
 import { fmtPrice, pct } from '../../lib/format';
 import type { DirectoryStock } from '../../lib/stockDirectory';
-import type { WatchStock } from '../../types';
+import type { Result, WatchStock } from '../../types';
+
+// Estimated token cost shown on the Refresh/Generate button.
+const EST_TOKENS = 10;
+
+// Parse the house recommendation from a dossier body ("Overall conviction: `3.
+// Hold`", falling back to the House conviction score). Drives the Buy/Hold/Sell
+// badge on the summary card.
+function recommendationOf(body: string): { label: string; tone: 'buy' | 'hold' | 'sell' } {
+  const conv = body.match(/Overall conviction:\*\*\s*`([^`]+)`/i)?.[1] ?? '';
+  const word = conv.replace(/^\s*\d+\.\s*/, '').trim().toLowerCase();
+  if (/\b(buy|accumulate|add|overweight)\b/.test(word)) return { label: 'BUY', tone: 'buy' };
+  if (/\b(sell|reduce|trim|underweight)\b/.test(word)) return { label: 'SELL', tone: 'sell' };
+  if (word.includes('hold')) return { label: 'HOLD', tone: 'hold' };
+  const score = Number(body.match(/House conviction:\s*\*{0,2}\s*(\d+)\s*\/\s*10/i)?.[1]);
+  if (score >= 7) return { label: 'BUY', tone: 'buy' };
+  if (score && score <= 4) return { label: 'SELL', tone: 'sell' };
+  return { label: 'HOLD', tone: 'hold' };
+}
+
+const REC_STYLE: Record<'buy' | 'hold' | 'sell', string> = {
+  buy: 'bg-success/15 text-success',
+  hold: 'bg-ink-100 text-ink-700',
+  sell: 'bg-danger/15 text-danger',
+};
 import { createStockReport, type StockReport } from '../../lib/stockReport';
 import { loadReports, addReport } from '../../lib/stockReportStore';
 import { loadRecentSearches, addRecentSearch } from '../../lib/recentSearches';
@@ -35,7 +60,7 @@ function exchangeFor(s: DirectoryStock): string {
 export function StockSearch() {
   const t = useT();
   const isDesktop = useIsDesktop();
-  const { watchlists, addToWatchlist } = useApp();
+  const { watchlists, addToWatchlist, results, agents } = useApp();
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [stock, setStock] = useState<DirectoryStock | null>(null);
@@ -45,6 +70,7 @@ export function StockSearch() {
   const [generating, setGenerating] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false); // mobile: report full-screen overlay
   const [recent, setRecent] = useState<DirectoryStock[]>(() => loadRecentSearches());
+  const [openResult, setOpenResult] = useState<Result | null>(null); // desk report mentioning this stock
 
   // Pull a live quote for the selected stock (Stooq), falling back to the
   // deterministic synthetic model so the header never sits empty.
@@ -89,6 +115,18 @@ export function StockSearch() {
   const publicReports = useMemo(() => reports.filter((r) => r.isPublic), [reports]);
   // "Other reports" = the public archive minus the latest already shown as the summary.
   const otherReports = useMemo(() => publicReports.filter((r) => r.id !== latest?.id), [publicReports, latest]);
+
+  // Desk/agent reports that mention this stock (by structured mention or keyword),
+  // newest first — pulled into the "Other reports mentioning {symbol}" section.
+  const mentionResults = useMemo(() => {
+    if (!stock) return [];
+    const sym = stock.symbol.toUpperCase();
+    return results
+      .filter((r) => r.stocks.some((s) => s.symbol.toUpperCase() === sym) || r.keywords.some((k) => k.toUpperCase() === sym))
+      .sort((a, b) => +new Date(b.at) - +new Date(a.at));
+  }, [results, stock]);
+
+  const otherCount = otherReports.length + mentionResults.length;
 
   // Membership across any list; the add bubble always files into the default list.
   const inWatchlist = !!stock && watchlists.some((l) => l.stocks.some((w) => w.symbol.toLowerCase() === stock.symbol.toLowerCase()));
@@ -184,7 +222,13 @@ export function StockSearch() {
               <span className="absolute left-0 inset-y-0 w-1 bg-accent" aria-hidden />
               {latest ? (
                 <button onClick={() => openReport(latest.id)} className="w-full text-left block active:opacity-80 transition-opacity">
-                  <span className="kicker text-accent">{t('stocksearch.latest')}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="kicker text-accent">{t('stocksearch.latest')}</span>
+                    {(() => {
+                      const rec = recommendationOf(latest.body);
+                      return <span className={`text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full shrink-0 ${REC_STYLE[rec.tone]}`}>{rec.label}</span>;
+                    })()}
+                  </div>
                   <h3 className="font-display text-[19px] font-medium text-ink-900 leading-snug mt-1.5">{latest.title}</h3>
                   <p className="text-[13px] text-ink-700 leading-snug mt-1.5 line-clamp-3">{latest.summary}</p>
                   {/* Generated time (left) · views (right) — moved below the summary */}
@@ -208,10 +252,13 @@ export function StockSearch() {
                 <button
                   onClick={onRefresh}
                   disabled={generating}
-                  className="flex-1 btn-accent py-3 font-medium text-[14px] inline-flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="relative flex-1 btn-accent py-3 font-medium text-[14px] inline-flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   <RefreshCw size={16} className={generating ? 'animate-spin' : ''} strokeWidth={2} />
                   {generating ? t('stocksearch.generating') : t('stocksearch.refresh')}
+                  {!generating && (
+                    <span className="absolute right-3 text-[11px] font-normal opacity-80">{t('stocksearch.estTokens', { n: EST_TOKENS })}</span>
+                  )}
                 </button>
                 <button
                   onClick={handleAddToWatchlist}
@@ -275,13 +322,14 @@ export function StockSearch() {
           )}
         </div>
 
-        {/* Divider + "other reports" archive (excludes the latest summary above) */}
-        {stock && otherReports.length > 0 && (
+        {/* Other reports mentioning this stock — the stock's own dossiers plus any
+            desk/agent reports that reference it. */}
+        {stock && otherCount > 0 && (
           <div className="px-5 mt-7 w-full max-w-2xl mx-auto pb-6">
             <div className="flex items-center gap-3 mb-1">
               <span className="text-[11px] font-medium uppercase tracking-label text-ink-500 shrink-0">{t('stocksearch.allReports', { symbol: stock.symbol })}</span>
               <div className="flex-1 h-px bg-ink-200" />
-              <span className="text-[11px] font-mono text-ink-300 shrink-0">{otherReports.length}</span>
+              <span className="text-[11px] font-mono text-ink-300 shrink-0">{otherCount}</span>
             </div>
             <ul>
               {otherReports.map((r) => (
@@ -301,12 +349,39 @@ export function StockSearch() {
                   </button>
                 </li>
               ))}
+              {mentionResults.map((r) => {
+                const agent = agents.find((a) => a.id === r.agentId);
+                return (
+                  <li key={r.id}>
+                    <button
+                      onClick={() => setOpenResult(r)}
+                      className="w-full text-left flex items-center gap-3 px-2 py-3 border-b border-ink-200 rounded-md transition-colors hover:bg-ink-50"
+                    >
+                      <FileText size={15} className="text-ink-300 shrink-0" strokeWidth={1.6} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[14px] font-medium text-ink-900 truncate leading-tight">{r.title}</span>
+                        <span className="block text-[11px] font-mono text-ink-500 mt-0.5">
+                          {agent ? t('meta.by', { name: agent.name }) : ''} · {genDate(r.at)}
+                        </span>
+                      </span>
+                      <ChevronRight size={15} className="text-ink-300 shrink-0" />
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
       </div>
     </div>
   );
+
+  // Modal overlay for a desk report that mentions this stock (shared across layouts).
+  const resultModal = openResult && (() => {
+    const agent = agents.find((a) => a.id === openResult.agentId);
+    if (!agent) return null;
+    return <ResultViewerModal result={openResult} agent={agent} onClose={() => setOpenResult(null)} />;
+  })();
 
   // ---- Desktop: control pane left, report right ----
   if (isDesktop) {
@@ -325,6 +400,7 @@ export function StockSearch() {
             )}
         </div>
         {searchOpen && <StockSearchModal onClose={() => setSearchOpen(false)} onSelect={selectStock} />}
+        {resultModal}
       </div>
     );
   }
@@ -334,6 +410,7 @@ export function StockSearch() {
     <>
       {controlPane}
       {searchOpen && <StockSearchModal onClose={() => setSearchOpen(false)} onSelect={selectStock} />}
+      {resultModal}
       {mobileOpen && selected && (
         <div className="absolute inset-0 z-30 bg-paper flex flex-col">
           <header className="shrink-0 px-4 py-3 border-b border-ink-200 flex items-center gap-2">

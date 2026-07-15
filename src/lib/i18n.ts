@@ -44,6 +44,7 @@ const messages = {
     'stocksearch.previous': 'Your recent searches',
     'stocksearch.searches': '{n} searches',
     'stocksearch.housePrompt': 'House prompt',
+    'stocksearch.estTokens': 'Est. {n} tokens',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} result',
@@ -548,6 +549,7 @@ const messages = {
     'stocksearch.previous': '你的最近搜尋',
     'stocksearch.searches': '{n} 次搜尋',
     'stocksearch.housePrompt': '機構提示',
+    'stocksearch.estTokens': '約 {n} 代幣',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇報告',
@@ -1052,6 +1054,7 @@ const messages = {
     'stocksearch.previous': '你的最近搜索',
     'stocksearch.searches': '{n} 次搜索',
     'stocksearch.housePrompt': '机构提示',
+    'stocksearch.estTokens': '约 {n} 代币',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇报告',
