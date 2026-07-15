@@ -284,11 +284,16 @@ export function StockSearch() {
                   ))}
                 </div>
                 {TRENDING_SEARCHES.length > 5 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {TRENDING_SEARCHES.slice(5).map((it) => (
-                      <QuoteBubble key={it.stock.symbol} s={it.stock} onPick={selectStock} />
-                    ))}
-                  </div>
+                  <>
+                    <div className="mt-4 mb-2.5">
+                      <SectionDivider title={t('stocksearch.trendingOther')} />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {TRENDING_SEARCHES.slice(5).map((it) => (
+                        <QuoteBubble key={it.stock.symbol} s={it.stock} onPick={selectStock} />
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
 
