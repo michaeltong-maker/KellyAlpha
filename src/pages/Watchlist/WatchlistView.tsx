@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../hooks/useApp';
 import { fetchQuote, syntheticQuote, currencyFor } from '../../lib/stocks';
 import { fmtPrice, pct } from '../../lib/format';
-import { Image as ImageIcon, Plus, X, ArrowUpDown, ChevronDown, Check, ChevronsUpDown, FolderInput, ListChecks, Trash2, Settings2, Star } from 'lucide-react';
+import { Image as ImageIcon, Plus, X, ArrowUpDown, ChevronDown, Check, ChevronsUpDown, FolderInput, ListChecks, Trash2, Settings2, Sparkles, Loader2, Star } from 'lucide-react';
 import type { Market, WatchStock, Watchlist } from '../../types';
 import { useT, type MessageKey } from '../../lib/i18n';
 import { Sparkline } from '../../components/Sparkline';
+import { suggestWatchlist, SUGGESTED_THEMES, type SuggestedStock } from '../../data/suggestedWatchlists';
 
 function marketLabel(m: Market) {
   return m === 'US' ? 'US' : m === 'HK' ? 'HK' : m === 'JP' ? 'JP' : 'A-Share';
@@ -55,6 +56,7 @@ export function WatchlistView() {
   const [showAdd, setShowAdd] = useState(false);
   const [newListOpen, setNewListOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
   // Move mode: rows become selectable, then get relocated to another list.
   const [moveMode, setMoveMode] = useState(false);
@@ -153,6 +155,18 @@ export function WatchlistView() {
   const addList = (name: string) =>
     setWatchlists((prev) => [...prev, { id: 'wl-' + Date.now().toString(36), name, stocks: [] }]);
 
+  // Create a watchlist from the AI-suggested theme and the user's selected picks.
+  const createSuggested = (name: string, picks: SuggestedStock[]) => {
+    const id = 'wl-' + Date.now().toString(36);
+    const stocks: WatchStock[] = picks.map((p) => ({
+      symbol: p.symbol, market: p.market, name: p.name,
+      addedAt: new Date().toISOString(), closeOnAdd: p.anchor,
+    }));
+    setWatchlists((prev) => [...prev, { id, name: name.trim() || 'Suggested', stocks }]);
+    setActiveListId(id);
+    setSuggestOpen(false);
+  };
+
   // ---- Move mode ----
   function exitMove() { setMoveMode(false); setSelected(new Set()); setMoveTargetOpen(false); }
   const toggleSelect = (symbol: string) =>
@@ -234,6 +248,15 @@ export function WatchlistView() {
             </div>
           )}
         </div>
+
+        {/* Suggested watchlist — AI-curated theme list */}
+        <button
+          onClick={() => setSuggestOpen(true)}
+          className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-pill border border-accent/40 bg-accent-soft text-accent text-[13px] font-medium hover:border-accent/60 transition-colors shrink-0"
+        >
+          <Sparkles size={14} />
+          <span className="hidden min-[720px]:inline whitespace-nowrap">{t('watchlist.suggest')}</span>
+        </button>
 
         <div className="flex-1" />
 
@@ -402,6 +425,10 @@ export function WatchlistView() {
         />
       )}
 
+      {suggestOpen && (
+        <SuggestModal onClose={() => setSuggestOpen(false)} onCreate={createSuggested} />
+      )}
+
       {/* Move-target chooser */}
       {moveTargetOpen && (
         <div className="absolute inset-0 bg-ink-900/40 z-30 flex items-end" onClick={() => setMoveTargetOpen(false)}>
@@ -551,6 +578,116 @@ function ManageListsModal({
             <Plus size={14} /> {t('watchlist.manage.add')}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Suggested watchlist: type a theme (or pick a chip), the "AI" proposes a name
+// and ~10 stocks (all checked by default), then the user confirms.
+function SuggestModal({ onClose, onCreate }: { onClose: () => void; onCreate: (name: string, picks: SuggestedStock[]) => void }) {
+  const t = useT();
+  const [query, setQuery] = useState('');
+  const [thinking, setThinking] = useState(false);
+  const [result, setResult] = useState<{ name: string; stocks: SuggestedStock[] } | null>(null);
+  const [name, setName] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const generate = (q: string) => {
+    const query = q.trim();
+    if (!query) return;
+    setThinking(true);
+    setTimeout(() => {
+      const sug = suggestWatchlist(query);
+      setResult(sug);
+      setName(sug.name);
+      setSelected(new Set(sug.stocks.map((s) => s.symbol)));
+      setThinking(false);
+    }, 700);
+  };
+
+  const toggle = (sym: string) =>
+    setSelected((cur) => { const n = new Set(cur); if (n.has(sym)) n.delete(sym); else n.add(sym); return n; });
+
+  const picks = result ? result.stocks.filter((s) => selected.has(s.symbol)) : [];
+
+  return (
+    <div className="absolute inset-0 bg-ink-900/40 z-30 flex items-end" onClick={onClose}>
+      <div className="w-full bg-card rounded-t-lg shadow-sheet p-4 pb-[max(env(safe-area-inset-bottom),16px)] max-h-[88%] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display text-[20px] font-medium text-ink-900 inline-flex items-center gap-2"><Sparkles size={18} className="text-accent" /> {t('watchlist.suggest.title')}</h3>
+          <button onClick={onClose} className="text-ink-500 hover:text-ink-900 transition-colors"><X size={18} /></button>
+        </div>
+
+        {!result && !thinking && (
+          <>
+            <p className="text-[13px] text-ink-500 mb-3">{t('watchlist.suggest.hint')}</p>
+            <div className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && generate(query)}
+                placeholder={t('watchlist.suggest.placeholder')}
+                className="flex-1 min-w-0 rounded-md border border-ink-200 bg-card px-3 py-2.5 text-[15px] outline-none focus:border-ink-900 placeholder:text-ink-300"
+              />
+              <button onClick={() => generate(query)} disabled={!query.trim()} className="btn-accent px-3.5 py-2.5 text-[14px] font-medium disabled:opacity-40 shrink-0">{t('watchlist.suggest.go')}</button>
+            </div>
+            <p className="mt-4 mb-2 text-[11px] uppercase tracking-label text-ink-500">{t('watchlist.suggest.tryThese')}</p>
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED_THEMES.map((th) => (
+                <button
+                  key={th.label}
+                  onClick={() => generate(th.label)}
+                  className="inline-flex items-center gap-1.5 text-[13px] px-3 py-1.5 rounded-pill border border-ink-200 text-ink-700 hover:border-accent hover:text-accent transition-colors"
+                >
+                  {th.label}
+                  {th.trending && <span className="text-[9px] uppercase tracking-label text-accent">{t('watchlist.suggest.trending')}</span>}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {thinking && (
+          <div className="py-10 flex flex-col items-center gap-2 text-ink-500">
+            <Loader2 size={22} className="animate-spin text-accent" />
+            <p className="text-[14px]">{t('watchlist.suggest.thinking')}</p>
+          </div>
+        )}
+
+        {result && !thinking && (
+          <>
+            <label className="text-[11px] uppercase tracking-label text-ink-500">{t('watchlist.suggest.nameLabel')}</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1.5 w-full rounded-md border border-ink-200 bg-card px-3 py-2 text-[16px] font-medium outline-none focus:border-ink-900"
+            />
+            <ul className="mt-3 divide-y divide-ink-200 border-y border-ink-200">
+              {result.stocks.map((s) => {
+                const on = selected.has(s.symbol);
+                return (
+                  <li key={s.symbol}>
+                    <button onClick={() => toggle(s.symbol)} className="w-full flex items-center gap-3 py-2.5 text-left">
+                      <span className={`shrink-0 w-5 h-5 rounded-full border flex items-center justify-center ${on ? 'bg-accent border-accent text-paper' : 'border-ink-300'}`}>
+                        {on && <Check size={13} strokeWidth={3} />}
+                      </span>
+                      <span className="font-mono text-[14px] text-ink-900 w-24 shrink-0">{s.symbol}</span>
+                      <span className="text-[14px] text-ink-500 truncate">{s.name}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="flex items-center gap-2 mt-4">
+              <button onClick={() => setResult(null)} className="px-3 py-2.5 rounded-sm border border-ink-200 text-ink-700 text-[14px] font-medium">{t('watchlist.suggest.back')}</button>
+              <button onClick={() => onCreate(name, picks)} disabled={picks.length === 0} className="flex-1 btn-accent py-2.5 text-[14px] font-medium disabled:opacity-40">
+                {t('watchlist.suggest.confirm', { n: picks.length })}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
