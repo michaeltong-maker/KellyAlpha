@@ -17,7 +17,10 @@ export interface Call {
   signal: Signal;
   at: string;          // ISO call date
   callPrice: number;   // reference price when the call was made
+  closed: boolean;     // settled (sold) vs open (still held)
   currentPrice: number;
+  sellAt?: string;     // ISO sell date (closed only)
+  sellPrice?: number;  // exit price (closed only)
   returnPct: number;   // signed return in the call's direction (short for sells)
 }
 
@@ -54,9 +57,23 @@ export function buildTrackRecord(agentId: string): Call[] {
     const at = new Date(Date.now() - daysAgo * 86_400_000).toISOString();
     const currentPrice = syntheticQuote({ symbol: stock.symbol, market: stock.market, name: stock.name, addedAt: '', closeOnAdd: stock.anchor }).price;
     const callPrice = +(stock.anchor * (1 + (rand() - 0.5) * 0.24)).toFixed(2); // ±12% vs anchor
-    const raw = ((currentPrice - callPrice) / callPrice) * 100;
+
+    // ~40% of calls are closed (sold before today); the rest are still open.
+    const closed = rand() < 0.42 && daysAgo > 2;
+    let sellAt: string | undefined;
+    let sellPrice: number | undefined;
+    let exitPrice = currentPrice;
+    if (closed) {
+      const held = 1 + Math.floor(rand() * Math.max(1, daysAgo - 1));
+      const sellDaysAgo = Math.max(1, daysAgo - held);
+      sellAt = new Date(Date.now() - sellDaysAgo * 86_400_000).toISOString();
+      sellPrice = +(callPrice * (1 + (rand() - 0.5) * 0.2)).toFixed(2); // ±10% vs call
+      exitPrice = sellPrice;
+    }
+
+    const raw = ((exitPrice - callPrice) / callPrice) * 100;
     const returnPct = (signal === 'sell' || signal === 'strong_sell') ? -raw : raw; // sells profit on drops
-    calls.push({ id: `call-${agentId}-${i}`, symbol: stock.symbol, name: stock.name, market: stock.market, signal, at, callPrice, currentPrice, returnPct });
+    calls.push({ id: `call-${agentId}-${i}`, symbol: stock.symbol, name: stock.name, market: stock.market, signal, at, callPrice, closed, currentPrice, sellAt, sellPrice, returnPct });
   }
   return calls;
 }
