@@ -22,7 +22,7 @@ const REC_STYLE: Record<'buy' | 'hold' | 'sell', string> = {
   hold: 'bg-ink-100 text-ink-700',
   sell: 'bg-danger/15 text-danger',
 };
-import { createStockReport, recommendationOf, type StockReport } from '../../lib/stockReport';
+import { createStockReport, recommendationOf, recommendationForSymbol, type StockReport } from '../../lib/stockReport';
 import { loadReports, addReport } from '../../lib/stockReportStore';
 import { loadRecentSearches, addRecentSearch } from '../../lib/recentSearches';
 import { TRENDING_SEARCHES, type TrendingItem } from '../../data/seedTrending';
@@ -457,14 +457,20 @@ function TrendingRow({ rank, item, onPick }: { rank: number; item: TrendingItem;
   const s = item.stock;
   const q = bubbleQuote(s);
   const up = q.changePct >= 0;
+  // House lean — the stock's report recommendation if one exists, else derived.
+  const rec = useMemo(() => {
+    const reports = loadReports(s.symbol);
+    return reports[0] ? recommendationOf(reports[0].body) : recommendationForSymbol(s.symbol);
+  }, [s.symbol]);
   return (
     <button
       onClick={() => onPick(s)}
       title={s.name}
-      className="w-full flex items-center gap-3 px-3 py-2 rounded-md border border-ink-200 hover:border-accent transition-colors text-left"
+      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md border border-ink-200 hover:border-accent transition-colors text-left"
     >
       <span className="text-[11px] font-mono text-ink-400 w-3 shrink-0">{rank}</span>
-      <span className="font-mono text-[13px] text-ink-900 shrink-0 w-[72px]">{s.symbol}</span>
+      <span className="font-mono text-[13px] text-ink-900 shrink-0 w-[60px] truncate">{s.symbol}</span>
+      <span className={`text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full shrink-0 inline-flex justify-center min-w-[40px] ${REC_STYLE[rec.tone]}`}>{rec.label}</span>
       <span className="font-mono text-[12px] text-ink-500">{fmtPrice(q.price, currencyFor(s.market))}</span>
       <span className={`font-mono text-[12px] ${up ? 'text-success' : 'text-danger'}`}>{pct(q.changePct)}</span>
       <span className="ml-auto text-[11px] text-ink-400 shrink-0">{t('stocksearch.searches', { n: item.count.toLocaleString() })}</span>
