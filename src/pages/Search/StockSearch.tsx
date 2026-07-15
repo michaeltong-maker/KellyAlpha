@@ -21,6 +21,17 @@ function genDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+// Representative exchange label per market (illustrative — the directory doesn't
+// store the exact listing venue).
+function exchangeFor(s: DirectoryStock): string {
+  switch (s.market) {
+    case 'US': return 'NASDAQ';
+    case 'HK': return 'HKEX';
+    case 'JP': return 'TSE';
+    case 'CN': return s.symbol.toUpperCase().endsWith('.SS') ? 'SSE' : 'SZSE';
+  }
+}
+
 export function StockSearch() {
   const t = useT();
   const isDesktop = useIsDesktop();
@@ -126,59 +137,36 @@ export function StockSearch() {
             </span>
           </button>
 
-          {/* Selected stock header: name, code, live price + change */}
+          {/* Selected stock card — logo monogram, name, exchange · ticker, price, 30-day chart */}
           {stock && (
-            <div className="mt-4 flex items-start gap-3">
-              <div className="min-w-0 flex-1">
-                <h2 className="font-display text-[24px] font-medium text-ink-900 leading-tight truncate">{stock.name}</h2>
-                <p className="font-mono text-[13px] text-ink-500 mt-0.5">{stock.symbol}</p>
-              </div>
-              <div className="shrink-0 text-right">
-                {price === undefined
-                  ? <span className="inline-block h-6 w-24 rounded bg-ink-100 animate-pulse" aria-hidden />
-                  : <span className="font-mono text-[22px] text-ink-900 leading-none">{fmtPrice(price, ccy)}</span>}
-                <div className="mt-1 flex items-center justify-end gap-2">
-                  {price !== undefined && (
-                    <Sparkline symbol={stock.symbol} price={price} changePct={change ?? 0} width={56} height={24} dot={false} />
-                  )}
-                  {change === undefined
-                    ? <span className="inline-block h-3.5 w-12 rounded bg-ink-100 animate-pulse" aria-hidden />
-                    : <span className={`font-mono text-[14px] ${change >= 0 ? 'text-success' : 'text-danger'}`}>{pct(change)}</span>}
+            <div className="mt-4 rounded-2xl border border-ink-200 bg-card p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-ink-900 text-paper flex items-center justify-center font-display text-[22px] leading-none shrink-0">
+                  {stock.name.trim().charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-display text-[22px] font-medium text-ink-900 leading-tight truncate">{stock.name}</h2>
+                  <p className="font-mono text-[12px] text-ink-500 mt-0.5">{exchangeFor(stock)} · {stock.symbol}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  {price === undefined
+                    ? <span className="inline-block h-7 w-28 rounded bg-ink-100 animate-pulse" aria-hidden />
+                    : <span className="font-display text-[26px] font-medium text-ink-900 leading-none">{fmtPrice(price, ccy)}</span>}
+                  <div className="mt-1.5">
+                    {change === undefined
+                      ? <span className="inline-block h-4 w-14 rounded bg-ink-100 animate-pulse" aria-hidden />
+                      : <span className={`font-mono text-[14px] inline-flex items-center gap-1 ${change >= 0 ? 'text-success' : 'text-danger'}`}>
+                          <span aria-hidden>{change >= 0 ? '▲' : '▼'}</span>{Math.abs(change).toFixed(1)}%
+                        </span>}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Refresh (generates a report) + Add to watchlist, with a credits note */}
-          {stock && (
-            <div className="mt-4">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={onRefresh}
-                  disabled={generating}
-                  className="flex-1 btn-accent py-3 font-medium text-[14px] inline-flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-                  <RefreshCw size={16} className={generating ? 'animate-spin' : ''} strokeWidth={2} />
-                  {generating ? t('stocksearch.generating') : t('stocksearch.refresh')}
-                </button>
-                <button
-                  onClick={handleAddToWatchlist}
-                  disabled={inWatchlist}
-                  className={`shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-sm text-[14px] font-medium border transition-colors duration-200 ease-out-expo ${
-                    inWatchlist
-                      ? 'border-ink-200 text-ink-500 bg-ink-50 cursor-default'
-                      : 'border-ink-900 text-ink-900 hover:bg-ink-900 hover:text-paper active:bg-ink-100'
-                  }`}
-                >
-                  {inWatchlist
-                    ? <><Check size={15} strokeWidth={2} /> {t('stocksearch.inWatchlist')}</>
-                    : <><Plus size={15} strokeWidth={2} /> {t('stocksearch.addWatchlist')}</>}
-                </button>
-              </div>
-              <p className="mt-2 text-[12px] text-ink-500 leading-snug flex items-start gap-1.5">
-                <Coins size={13} className="mt-0.5 shrink-0 text-ink-300" strokeWidth={1.8} />
-                <span>{t('stocksearch.creditsNote')}</span>
-              </p>
+              {price !== undefined && (
+                <div className="mt-3 relative">
+                  <Sparkline symbol={stock.symbol} price={price} changePct={change ?? 0} width={600} height={88} fill dot={false} className="w-full h-auto" />
+                  <span className="absolute bottom-1 right-1.5 text-[11px] font-medium uppercase tracking-label text-ink-400">30-Day</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -208,6 +196,43 @@ export function StockSearch() {
             <div className="mt-6 rounded-lg border border-dashed border-ink-200 p-6 text-center">
               <p className="text-[15px] font-medium text-ink-900">{t('stocksearch.noReports')}</p>
               <p className="text-[13px] text-ink-500 mt-1">{t('stocksearch.noReportsHint', { symbol: stock.symbol })}</p>
+            </div>
+          )}
+
+          {/* House Prompt divider + actions (Refresh / Add to watchlist) */}
+          {stock && (
+            <div className="mt-6">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[11px] font-medium uppercase tracking-label text-ink-500 shrink-0">{t('stocksearch.housePrompt')}</span>
+                <div className="flex-1 h-px bg-ink-200" />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onRefresh}
+                  disabled={generating}
+                  className="flex-1 btn-accent py-3 font-medium text-[14px] inline-flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  <RefreshCw size={16} className={generating ? 'animate-spin' : ''} strokeWidth={2} />
+                  {generating ? t('stocksearch.generating') : t('stocksearch.refresh')}
+                </button>
+                <button
+                  onClick={handleAddToWatchlist}
+                  disabled={inWatchlist}
+                  className={`shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-sm text-[14px] font-medium border transition-colors duration-200 ease-out-expo ${
+                    inWatchlist
+                      ? 'border-ink-200 text-ink-500 bg-ink-50 cursor-default'
+                      : 'border-ink-900 text-ink-900 hover:bg-ink-900 hover:text-paper active:bg-ink-100'
+                  }`}
+                >
+                  {inWatchlist
+                    ? <><Check size={15} strokeWidth={2} /> {t('stocksearch.inWatchlist')}</>
+                    : <><Plus size={15} strokeWidth={2} /> {t('stocksearch.addWatchlist')}</>}
+                </button>
+              </div>
+              <p className="mt-2 text-[12px] text-ink-500 leading-snug flex items-start gap-1.5">
+                <Coins size={13} className="mt-0.5 shrink-0 text-ink-300" strokeWidth={1.8} />
+                <span>{t('stocksearch.creditsNote')}</span>
+              </p>
             </div>
           )}
 

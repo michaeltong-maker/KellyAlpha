@@ -43,6 +43,7 @@ const messages = {
     'stocksearch.trending': 'Trending search',
     'stocksearch.previous': 'Your recent searches',
     'stocksearch.searches': '{n} searches',
+    'stocksearch.housePrompt': 'House prompt',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} result',
@@ -546,6 +547,7 @@ const messages = {
     'stocksearch.trending': '熱門搜尋',
     'stocksearch.previous': '你的最近搜尋',
     'stocksearch.searches': '{n} 次搜尋',
+    'stocksearch.housePrompt': '機構提示',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇報告',
@@ -1049,6 +1051,7 @@ const messages = {
     'stocksearch.trending': '热门搜索',
     'stocksearch.previous': '你的最近搜索',
     'stocksearch.searches': '{n} 次搜索',
+    'stocksearch.housePrompt': '机构提示',
 
     // Headers / subtitles
     'header.desk.results.one': '{n} 篇报告',
