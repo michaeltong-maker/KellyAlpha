@@ -19,7 +19,7 @@ const messages = {
     'tab.marketplace': 'Marketplace',
     'tab.watchlist': 'Watchlist',
     'tab.create': 'Create',
-    'tab.search': 'Search',
+    'tab.search': 'Stocks',
 
     // Stock Search
     'stocksearch.title': 'Stock Search',
@@ -166,6 +166,7 @@ const messages = {
     'marketplace.hired': 'Hired',
     'marketplace.tryStrategy': 'Try a strategy — value investing, technical, macro…',
     'marketplace.filters': 'Filters',
+    'marketplace.createOwn': 'Create your own agent',
     'marketplace.avgReturn': 'Avg return',
     'marketplace.noPerf': 'No perf tracked',
     'marketplace.stat.hires': '{n} hires',
@@ -577,7 +578,7 @@ const messages = {
     'tab.marketplace': '市集',
     'tab.watchlist': '自選股',
     'tab.create': '創建',
-    'tab.search': '搜尋',
+    'tab.search': '股票',
 
     // Stock Search
     'stocksearch.title': '個股研究',
@@ -724,6 +725,7 @@ const messages = {
     'marketplace.hired': '已聘用',
     'marketplace.tryStrategy': '試試一種策略 — 價值投資、技術、宏觀…',
     'marketplace.filters': '篩選',
+    'marketplace.createOwn': '打造你的智能體',
     'marketplace.avgReturn': '平均回報',
     'marketplace.noPerf': '未追蹤績效',
     'marketplace.stat.hires': '{n} 次聘用',
@@ -1135,7 +1137,7 @@ const messages = {
     'tab.marketplace': '市集',
     'tab.watchlist': '自选股',
     'tab.create': '创建',
-    'tab.search': '搜索',
+    'tab.search': '股票',
 
     // Stock Search
     'stocksearch.title': '个股研究',
@@ -1282,6 +1284,7 @@ const messages = {
     'marketplace.hired': '已聘用',
     'marketplace.tryStrategy': '试试一种策略 — 价值投资、技术、宏观…',
     'marketplace.filters': '筛选',
+    'marketplace.createOwn': '打造你的智能体',
     'marketplace.avgReturn': '平均回报',
     'marketplace.noPerf': '未跟踪绩效',
     'marketplace.stat.hires': '{n} 次雇用',

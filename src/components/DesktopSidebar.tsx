@@ -1,16 +1,15 @@
 import { NavLink, Link } from 'react-router-dom';
-import { MessageCircle, Store, PlusSquare, Eye, BookOpen, Search } from 'lucide-react';
+import { MessageCircle, Store, Eye, BookOpen, Search } from 'lucide-react';
 import { useApp } from '../hooks/useApp';
 import { Avatar } from './Avatar';
 import { useT, type MessageKey } from '../lib/i18n';
 
 const TABS: { to: string; key: MessageKey; Icon: typeof MessageCircle }[] = [
   { to: '/desk',        key: 'tab.desk',        Icon: BookOpen },
+  { to: '/search',      key: 'tab.search',      Icon: Search },       // "Stocks"
   { to: '/chat',        key: 'tab.chat',        Icon: MessageCircle },
-  { to: '/marketplace', key: 'tab.marketplace', Icon: Store },
   { to: '/watchlist',   key: 'tab.watchlist',   Icon: Eye },
-  { to: '/search',      key: 'tab.search',      Icon: Search },
-  { to: '/create',      key: 'tab.create',      Icon: PlusSquare },
+  { to: '/marketplace', key: 'tab.marketplace', Icon: Store },
 ];
 
 /**
@@ -35,9 +34,9 @@ export function DesktopSidebar() {
         <span className="text-[13px] font-semibold uppercase tracking-logo text-ink-900">Alphawalk</span>
       </div>
 
-      {/* Primary nav — Create is revealed only after the user has engaged. */}
+      {/* Primary nav — Create lives in the Marketplace, not the main nav. */}
       <nav className="flex-1 px-3 overflow-y-auto">
-        {TABS.filter((tb) => tb.to !== '/create' || persisted.hasOnboarded).map(({ to, key, Icon }) => {
+        {TABS.map(({ to, key, Icon }) => {
           const showNewBadge = to === '/chat' && persisted.hasNewHires;
           return (
             <NavLink

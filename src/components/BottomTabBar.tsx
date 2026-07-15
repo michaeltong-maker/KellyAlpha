@@ -1,23 +1,20 @@
 import { NavLink } from 'react-router-dom';
-import { MessageCircle, Store, PlusSquare, Eye, BookOpen, Search } from 'lucide-react';
+import { MessageCircle, Store, Eye, BookOpen, Search } from 'lucide-react';
 import { useApp } from '../hooks/useApp';
 import { useT, type MessageKey } from '../lib/i18n';
 
 const TABS: { to: string; key: MessageKey; Icon: typeof MessageCircle }[] = [
   { to: '/desk',        key: 'tab.desk',        Icon: BookOpen },
+  { to: '/search',      key: 'tab.search',      Icon: Search },       // "Stocks"
   { to: '/chat',        key: 'tab.chat',        Icon: MessageCircle },
-  { to: '/marketplace', key: 'tab.marketplace', Icon: Store },
   { to: '/watchlist',   key: 'tab.watchlist',   Icon: Eye },
-  { to: '/search',      key: 'tab.search',      Icon: Search },
-  { to: '/create',      key: 'tab.create',      Icon: PlusSquare },
+  { to: '/marketplace', key: 'tab.marketplace', Icon: Store },
 ];
 
 export function BottomTabBar() {
   const { persisted } = useApp();
   const t = useT();
-  // Progressive disclosure: Create stays hidden until the user has engaged
-  // (hired or created an analyst), so a newcomer focuses on the core loop.
-  const tabs = TABS.filter((tb) => tb.to !== '/create' || persisted.hasOnboarded);
+  const tabs = TABS;
   return (
     <nav className="shrink-0 bg-paper border-t border-ink-200 px-1 pt-1.5 pb-[max(env(safe-area-inset-bottom),8px)]">
       <ul className="flex w-full max-w-md mx-auto">

@@ -4,7 +4,7 @@ import { useApp } from '../../hooks/useApp';
 import { AppHeader } from '../../components/AppHeader';
 import { Avatar } from '../../components/Avatar';
 import { Tag } from '../../components/Tag';
-import { Sparkles, X, Check, Star, Users, Play, Coins, ArrowUpDown, ChevronDown, TrendingUp, Clock, Percent, SlidersHorizontal } from 'lucide-react';
+import { Sparkles, X, Check, Star, Users, Play, Coins, ArrowUpDown, ChevronDown, TrendingUp, Clock, Percent, SlidersHorizontal, PlusSquare } from 'lucide-react';
 import type { Agent, Tag as TagType } from '../../types';
 import { useT, type MessageKey } from '../../lib/i18n';
 import { pct } from '../../lib/format';
@@ -153,6 +153,13 @@ export function Marketplace() {
       {/* Cards */}
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
         <div className="w-full max-w-5xl mx-auto">
+          {/* Create entrance — Create is no longer a main tab, so it lives here. */}
+          <Link
+            to="/create"
+            className="mb-3 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-dashed border-ink-300 text-ink-700 text-[14px] font-medium hover:border-accent hover:text-accent transition-colors"
+          >
+            <PlusSquare size={16} strokeWidth={1.8} /> {t('marketplace.createOwn')}
+          </Link>
           <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start pb-2">
             {listed.map((a, i) => (
               <li key={a.id}>
