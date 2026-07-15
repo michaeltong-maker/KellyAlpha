@@ -31,6 +31,21 @@ function ccyFor(m: Market): string {
   return m === 'US' ? '$' : m === 'HK' ? 'HK$' : '¥';
 }
 
+// Parse the house recommendation from a dossier body ("Overall conviction: `3.
+// Hold`", falling back to the House conviction score). Drives the Buy/Hold/Sell
+// badge on report cards.
+export function recommendationOf(body: string): { label: string; tone: 'buy' | 'hold' | 'sell' } {
+  const conv = body.match(/Overall conviction:\*\*\s*`([^`]+)`/i)?.[1] ?? '';
+  const word = conv.replace(/^\s*\d+\.\s*/, '').trim().toLowerCase();
+  if (/\b(buy|accumulate|add|overweight)\b/.test(word)) return { label: 'BUY', tone: 'buy' };
+  if (/\b(sell|reduce|trim|underweight)\b/.test(word)) return { label: 'SELL', tone: 'sell' };
+  if (word.includes('hold')) return { label: 'HOLD', tone: 'hold' };
+  const score = Number(body.match(/House conviction:\s*\*{0,2}\s*(\d+)\s*\/\s*10/i)?.[1]);
+  if (score >= 7) return { label: 'BUY', tone: 'buy' };
+  if (score && score <= 4) return { label: 'SELL', tone: 'sell' };
+  return { label: 'HOLD', tone: 'hold' };
+}
+
 function filename(symbol: string, when: Date): string {
   const slug = symbol.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
   return `${slug}-equity-research-${when.toISOString().split('T')[0]}.md`;

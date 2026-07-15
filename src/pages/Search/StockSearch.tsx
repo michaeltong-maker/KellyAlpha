@@ -17,27 +17,12 @@ import type { Result, WatchStock } from '../../types';
 // Estimated token cost shown on the Refresh/Generate button.
 const EST_TOKENS = 10;
 
-// Parse the house recommendation from a dossier body ("Overall conviction: `3.
-// Hold`", falling back to the House conviction score). Drives the Buy/Hold/Sell
-// badge on the summary card.
-function recommendationOf(body: string): { label: string; tone: 'buy' | 'hold' | 'sell' } {
-  const conv = body.match(/Overall conviction:\*\*\s*`([^`]+)`/i)?.[1] ?? '';
-  const word = conv.replace(/^\s*\d+\.\s*/, '').trim().toLowerCase();
-  if (/\b(buy|accumulate|add|overweight)\b/.test(word)) return { label: 'BUY', tone: 'buy' };
-  if (/\b(sell|reduce|trim|underweight)\b/.test(word)) return { label: 'SELL', tone: 'sell' };
-  if (word.includes('hold')) return { label: 'HOLD', tone: 'hold' };
-  const score = Number(body.match(/House conviction:\s*\*{0,2}\s*(\d+)\s*\/\s*10/i)?.[1]);
-  if (score >= 7) return { label: 'BUY', tone: 'buy' };
-  if (score && score <= 4) return { label: 'SELL', tone: 'sell' };
-  return { label: 'HOLD', tone: 'hold' };
-}
-
 const REC_STYLE: Record<'buy' | 'hold' | 'sell', string> = {
   buy: 'bg-success/15 text-success',
   hold: 'bg-ink-100 text-ink-700',
   sell: 'bg-danger/15 text-danger',
 };
-import { createStockReport, type StockReport } from '../../lib/stockReport';
+import { createStockReport, recommendationOf, type StockReport } from '../../lib/stockReport';
 import { loadReports, addReport } from '../../lib/stockReportStore';
 import { loadRecentSearches, addRecentSearch } from '../../lib/recentSearches';
 import { TRENDING_SEARCHES, type TrendingItem } from '../../data/seedTrending';
