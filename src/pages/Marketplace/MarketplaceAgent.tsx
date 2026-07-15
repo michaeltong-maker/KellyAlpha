@@ -6,6 +6,7 @@ import { Avatar } from '../../components/Avatar';
 import { Tag } from '../../components/Tag';
 import { Star, Users, BookOpen, Lightbulb, CopyPlus, Check, Share, ChevronDown, PenLine, X } from 'lucide-react';
 import { SampleOutput } from '../../components/SampleOutput';
+import { TrackRecord } from '../../components/TrackRecord';
 import { ShareSheet } from '../../components/ShareSheet';
 import { createRunResult } from '../../lib/result';
 import { useT } from '../../lib/i18n';
@@ -197,6 +198,9 @@ export function MarketplaceAgent() {
 
         {/* Sample output */}
         <SampleOutput agent={agent} />
+
+        {/* Track record — open positions only on the marketplace listing */}
+        <TrackRecord agentId={agent.id} openOnly />
 
         {/* Reviews */}
         <section className="px-4 py-4 border-b border-ink-200">

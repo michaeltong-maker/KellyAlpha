@@ -23,7 +23,7 @@ const SIGNAL_STYLE: Record<Signal, string> = {
 const colorOf = (v: number) => (v >= 0 ? 'text-success' : 'text-danger');
 const fmtWin = (v: number) => (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)) + '%';
 
-export function TrackRecord({ agentId }: { agentId: string }) {
+export function TrackRecord({ agentId, openOnly = false }: { agentId: string; openOnly?: boolean }) {
   const t = useT();
   const calls = useMemo(() => buildTrackRecord(agentId), [agentId]);
   const openGroups = useMemo(() => groupStats(calls.filter((c) => !c.closed)), [calls]);
@@ -54,7 +54,7 @@ export function TrackRecord({ agentId }: { agentId: string }) {
         <p className="mt-3 text-[12px] text-ink-500">{t('track.unsettled')}</p>
 
         {/* Closed positions — collapsed until the user opens the details */}
-        {closedCount > 0 && (
+        {!openOnly && closedCount > 0 && (
           <div className="mt-3 pt-3 border-t border-ink-200">
             <button
               onClick={() => setShowClosed((v) => !v)}
