@@ -461,10 +461,15 @@ const messages = {
     'agent.run.onIt': 'On it — running the cycle now.',
     'run.filing.eyebrow': '{name} is at work',
     'run.stage.walking': 'Walking the markets',
+    'run.stage.walking.detail': 'Pulling today’s tape and your open positions',
     'run.stage.scanning': 'Scanning the headlines',
+    'run.stage.scanning.detail': 'Reading each detailed headline for signal',
     'run.stage.flows': 'Reading the order flow',
+    'run.stage.flows.detail': 'Cross-referencing fund flows against live quotes',
     'run.stage.drafting': 'Drafting the brief',
+    'run.stage.drafting.detail': 'Assembling the structured dossier',
     'run.stage.filing': 'Filing the dossier',
+    'run.stage.filing.detail': 'Publishing the report to your desk',
 
     // Agent greeting lines (posted to chat after a manual run)
     'greet.morning': 'Good morning',
@@ -1020,10 +1025,15 @@ const messages = {
     'agent.run.onIt': '收到 — 正在執行本次任務。',
     'run.filing.eyebrow': '{name} 正在工作',
     'run.stage.walking': '巡視市場中',
+    'run.stage.walking.detail': '擷取今日行情與你的現有部位',
     'run.stage.scanning': '掃描頭條中',
+    'run.stage.scanning.detail': '逐條研讀重點頭條以尋找訊號',
     'run.stage.flows': '研讀資金流向',
+    'run.stage.flows.detail': '交叉比對資金流向與即時報價',
     'run.stage.drafting': '撰寫簡報中',
+    'run.stage.drafting.detail': '組裝結構化研究報告',
     'run.stage.filing': '歸檔簡報中',
+    'run.stage.filing.detail': '將報告發佈到你的工作台',
 
     // Agent greeting lines (posted to chat after a manual run)
     'greet.morning': '早安',
@@ -1579,10 +1589,15 @@ const messages = {
     'agent.run.onIt': '收到 — 正在执行本次任务。',
     'run.filing.eyebrow': '{name} 正在工作',
     'run.stage.walking': '巡视市场中',
+    'run.stage.walking.detail': '获取今日行情与你的现有仓位',
     'run.stage.scanning': '扫描头条中',
+    'run.stage.scanning.detail': '逐条研读重点头条以寻找信号',
     'run.stage.flows': '研读资金流向',
+    'run.stage.flows.detail': '交叉比对资金流向与实时报价',
     'run.stage.drafting': '撰写简报中',
+    'run.stage.drafting.detail': '组装结构化研究报告',
     'run.stage.filing': '归档简报中',
+    'run.stage.filing.detail': '将报告发布到你的工作台',
 
     // Agent greeting lines (posted to chat after a manual run)
     'greet.morning': '早安',

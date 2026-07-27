@@ -6,10 +6,18 @@ import { Cpu, Coins, Play, Loader2, Check, Clock, Trash2, RefreshCw, SquarePen }
 import { ConfirmDeleteSheet } from '../../components/ConfirmDeleteSheet';
 import { countdown } from '../../lib/format';
 import { celebrateFiling } from '../../lib/celebrate';
-import { RunFiling } from '../../components/RunFiling';
 import { TrackRecord } from '../../components/TrackRecord';
 import type { Agent, Frequency, Result } from '../../types';
 import { useT, type MessageKey } from '../../lib/i18n';
+
+// Staged progress shown inline under the play button while a run is in flight.
+const RUN_STAGES: { title: MessageKey; detail: MessageKey }[] = [
+  { title: 'run.stage.walking',  detail: 'run.stage.walking.detail' },
+  { title: 'run.stage.scanning', detail: 'run.stage.scanning.detail' },
+  { title: 'run.stage.flows',    detail: 'run.stage.flows.detail' },
+  { title: 'run.stage.drafting', detail: 'run.stage.drafting.detail' },
+  { title: 'run.stage.filing',   detail: 'run.stage.filing.detail' },
+];
 
 // Mock report used whenever the user manually triggers a run from the Profile
 // tab. Deep dive into Tencent's valuation + recent catalysts — chosen because
@@ -271,7 +279,7 @@ export function AgentDetail() {
   const t = useT();
   const agent = useMemo(() => agents.find((a) => a.id === id), [agents, id]);
   const [runState, setRunState] = useState<'idle' | 'running' | 'done'>('idle');
-  const [filing, setFiling] = useState(false);
+  const [runStep, setRunStep] = useState(-1); // -1 idle, else index into RUN_STAGES
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Alternation counter for manual runs — flips between the Tencent deep dive
   // and the Hang Seng Tech Index note on each click. Refs (vs state) keep
@@ -332,12 +340,23 @@ export function AgentDetail() {
 
   const starting = agent.task.nodes.find((n) => n.kind === 'starting');
 
-  // Kicks off the live "analyst at work" sequence. The RunFiling overlay owns
-  // the timing and calls produceResult() when it resolves.
+  // Kicks off the "analyst at work" sequence inline, stepping through the stages
+  // under the play button, then produces the result on the final stage.
   const runNow = () => {
     if (runState !== 'idle') return;
     setRunState('running');
-    setFiling(true);
+    setRunStep(0);
+    let step = 0;
+    const tick = () => {
+      if (step >= RUN_STAGES.length - 1) {
+        window.setTimeout(() => { produceResult(); setRunStep(-1); }, 700);
+        return;
+      }
+      step += 1;
+      setRunStep(step);
+      window.setTimeout(tick, 800);
+    };
+    window.setTimeout(tick, 800);
   };
 
   // Emits the bilingual result, files it with the stamp, and posts the
@@ -393,7 +412,6 @@ export function AgentDetail() {
 
   return (
     <div className="relative flex-1 min-h-0 flex flex-col bg-paper">
-      {filing && <RunFiling agent={agent} onComplete={() => { setFiling(false); produceResult(); }} />}
       <div className="flex-1 min-h-0 overflow-y-auto w-full max-w-3xl mx-auto">
         {/* Task overview — tags moved inline with the heading so the agent's
             focus areas live next to the description of what it does. */}
@@ -430,6 +448,26 @@ export function AgentDetail() {
                   : runState === 'done' ? <Check size={18} />
                   : <Play size={18} fill="currentColor" />}
               </button>
+            </div>
+          )}
+
+          {/* Inline run progress — staged detail under the play button */}
+          {runStep >= 0 && (
+            <div className="mt-2.5 rounded-lg border border-ink-200 bg-card p-3.5">
+              <div className="flex items-center gap-2.5">
+                <Loader2 size={16} className="text-accent animate-spin shrink-0" strokeWidth={2} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-medium text-ink-900 leading-tight truncate">{t(RUN_STAGES[runStep].title)}</p>
+                  <p className="text-[12px] text-ink-500 leading-tight mt-0.5">{t(RUN_STAGES[runStep].detail)}</p>
+                </div>
+                <span className="ml-auto text-[11px] font-mono text-ink-400 shrink-0">{runStep + 1}/{RUN_STAGES.length}</span>
+              </div>
+              <div className="mt-2.5 h-1 bg-ink-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full accent-gradient origin-left transition-transform duration-500 ease-out-expo"
+                  style={{ transform: `scaleX(${(runStep + 1) / RUN_STAGES.length})` }}
+                />
+              </div>
             </div>
           )}
         </section>
