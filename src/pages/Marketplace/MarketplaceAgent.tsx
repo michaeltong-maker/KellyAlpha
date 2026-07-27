@@ -6,6 +6,7 @@ import { Avatar } from '../../components/Avatar';
 import { Tag } from '../../components/Tag';
 import { Star, Users, BookOpen, Lightbulb, CopyPlus, Check, Share, ChevronDown, PenLine, X } from 'lucide-react';
 import { SampleOutput } from '../../components/SampleOutput';
+import { TrackRecord } from '../../components/TrackRecord';
 import { ShareSheet } from '../../components/ShareSheet';
 import { createRunResult } from '../../lib/result';
 import { useT } from '../../lib/i18n';
@@ -26,7 +27,7 @@ export function MarketplaceAgent() {
   const { id = '' } = useParams();
   const nav = useNavigate();
   const t = useT();
-  const { agents, setAgents, setChats, setResults, watchlist, persisted, updatePersisted } = useApp();
+  const { agents, setAgents, setChats, setResults, watchlists, persisted, updatePersisted } = useApp();
   const agent = useMemo(() => agents.find((a) => a.id === id), [agents, id]);
 
   // Hiring is one-time per analyst: the user either has it on their desk or
@@ -87,7 +88,7 @@ export function MarketplaceAgent() {
     setAgents((list) => [copy, ...list.map((a) => a.id === agent.id ? { ...a, duplicates: a.duplicates + 1 } : a)]);
     // File a first report straight away so the chat lands on a real dossier
     // (the aha) rather than an empty welcome.
-    const firstReport = createRunResult(copy, watchlist);
+    const firstReport = createRunResult(copy, watchlists.flatMap((l) => l.stocks));
     setResults((rs) => [firstReport, ...rs]);
     setChats((c) => [
       ...c,
@@ -197,6 +198,9 @@ export function MarketplaceAgent() {
 
         {/* Sample output */}
         <SampleOutput agent={agent} />
+
+        {/* Track record — open positions only on the marketplace listing */}
+        <TrackRecord agentId={agent.id} openOnly />
 
         {/* Reviews */}
         <section className="px-4 py-4 border-b border-ink-200">

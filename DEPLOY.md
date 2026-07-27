@@ -7,7 +7,7 @@ resistance.
 ## One-time setup
 
 ```bash
-cd alphawalk
+cd KellyAlpha
 npm install               # if you haven't already
 ```
 
@@ -17,7 +17,7 @@ npm install               # if you haven't already
 # First time: install the Vercel CLI globally (or use npx)
 npm i -g vercel
 
-# From the alphawalk/ directory:
+# From the KellyAlpha/ directory:
 vercel              # follow the prompts to link / create a project (preview deploy)
 vercel --prod       # promote to production
 ```

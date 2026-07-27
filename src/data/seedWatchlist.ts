@@ -1,4 +1,4 @@
-import type { WatchStock } from '../types';
+import type { Watchlist, WatchStock } from '../types';
 
 function isoDaysAgo(days: number): string {
   return new Date(Date.now() - days * 86_400_000).toISOString();
@@ -16,4 +16,16 @@ export const SEED_WATCHLIST: WatchStock[] = [
   { symbol: '6758.T',    market: 'JP', name: 'Sony Group Corp',             addedAt: isoDaysAgo(40), closeOnAdd: 2950.0, pe: 17.4, peTTM: 17.0, mktCap: '¥17T',   mktCapUsd: 110, high52: 3201.0, low52: 1980.0 },
   { symbol: '600519.SS', market: 'CN', name: 'Kweichow Moutai',             addedAt: isoDaysAgo(50), closeOnAdd: 1488.0, pe: 22.6, peTTM: 22.0, mktCap: '¥1.87T', mktCapUsd: 258, high52: 1810.0, low52: 1245.0 },
   { symbol: '000858.SZ', market: 'CN', name: 'Wuliangye Yibin',             addedAt: isoDaysAgo(33), closeOnAdd:  144.6, pe: 18.1, peTTM: 17.8, mktCap: '¥558B',  mktCapUsd:  77, high52:  198.0, low52:  118.4 },
+];
+
+// Watchlists are multi-list now. The first one is the immutable default: the
+// "add to watchlist" bubble everywhere files into it. A second seeded list shows
+// off the picker + move flow out of the box.
+export const SEED_WATCHLISTS: Watchlist[] = [
+  { id: 'wl-default', name: 'My Watchlist', isDefault: true, stocks: SEED_WATCHLIST },
+  {
+    id: 'wl-semis',
+    name: 'Semis & AI',
+    stocks: SEED_WATCHLIST.filter((s) => ['NVDA', 'TSLA', '600519.SS'].includes(s.symbol)),
+  },
 ];

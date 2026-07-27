@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { Agent, ActivityItem, ChatMessage, Profile, Result, WatchStock } from '../types';
+import type { Agent, ActivityItem, ChatMessage, Portfolio, Profile, Result, Watchlist, WatchStock } from '../types';
 import { SEED_AGENTS } from '../data/seedAgents';
 import { SEED_ACTIVITY } from '../data/seedActivity';
 import { SEED_CHATS } from '../data/seedChats';
-import { SEED_WATCHLIST } from '../data/seedWatchlist';
 import { SEED_RESULTS } from '../data/seedResults';
 import { loadState, saveState, type PersistedState } from '../lib/storage';
 import { localizeAgent, localizeResult } from '../lib/localize';
@@ -17,8 +16,14 @@ interface AppCtx {
   setActivity: React.Dispatch<React.SetStateAction<ActivityItem[]>>;
   results: Result[];
   setResults: React.Dispatch<React.SetStateAction<Result[]>>;
-  watchlist: WatchStock[];
-  setWatchlist: React.Dispatch<React.SetStateAction<WatchStock[]>>;
+  watchlists: Watchlist[];
+  setWatchlists: React.Dispatch<React.SetStateAction<Watchlist[]>>;
+  portfolio: Portfolio;
+  setPortfolio: React.Dispatch<React.SetStateAction<Portfolio>>;
+  // Convenience helpers for the app-wide "add to watchlist" bubble and detail
+  // remove, so callers don't need to know the multi-list shape.
+  addToWatchlist: (stock: WatchStock, listId?: string) => void; // defaults to the default list
+  removeFromWatchlists: (symbol: string) => void;               // remove from every list
   profile: Profile;
   setProfile: React.Dispatch<React.SetStateAction<Profile>>;
   persisted: PersistedState;
@@ -39,10 +44,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const userResults = persisted.userResults ?? [];
     return [...userResults, ...SEED_RESULTS];
   });
-  const [watchlist, setWatchlist] = useState<WatchStock[]>(SEED_WATCHLIST);
+  const [watchlists, setWatchlists] = useState<Watchlist[]>(() => persisted.watchlists);
+  const [portfolio, setPortfolio] = useState<Portfolio>(() => persisted.portfolio);
   const [profile, setProfile] = useState<Profile>({ name: 'You', email: 'you@alphawalk.app', avatarSeed: 'me-default' });
 
   useEffect(() => { saveState(persisted); }, [persisted]);
+
+  // Persist watchlists + portfolio. Live price fields ride along harmlessly —
+  // they're refreshed from the quote feed on the next load anyway.
+  useEffect(() => { setPersisted((s) => (s.watchlists === watchlists ? s : { ...s, watchlists })); }, [watchlists]);
+  useEffect(() => { setPersisted((s) => (s.portfolio === portfolio ? s : { ...s, portfolio })); }, [portfolio]);
+
+  // Add a stock to a watchlist (the default list unless a listId is given),
+  // skipping symbols already present in that list.
+  const addToWatchlist = (stock: WatchStock, listId?: string) =>
+    setWatchlists((lists) => {
+      const targetId = listId ?? lists.find((l) => l.isDefault)?.id ?? lists[0]?.id;
+      return lists.map((l) =>
+        l.id === targetId && !l.stocks.some((x) => x.symbol.toLowerCase() === stock.symbol.toLowerCase())
+          ? { ...l, stocks: [stock, ...l.stocks] }
+          : l,
+      );
+    });
+
+  const removeFromWatchlists = (symbol: string) =>
+    setWatchlists((lists) =>
+      lists.map((l) => ({ ...l, stocks: l.stocks.filter((x) => x.symbol !== symbol) })),
+    );
 
   // Persist user-created agents whenever the agents list changes.
   useEffect(() => {
@@ -79,8 +107,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const localizedResults = useMemo(() => results.map((r) => localizeResult(r, lang)), [results, lang]);
 
   const value = useMemo(
-    () => ({ agents: localizedAgents, setAgents, chats, setChats, activity, setActivity, results: localizedResults, setResults, watchlist, setWatchlist, profile, setProfile, persisted, updatePersisted }),
-    [localizedAgents, chats, activity, localizedResults, watchlist, profile, persisted]
+    () => ({ agents: localizedAgents, setAgents, chats, setChats, activity, setActivity, results: localizedResults, setResults, watchlists, setWatchlists, portfolio, setPortfolio, addToWatchlist, removeFromWatchlists, profile, setProfile, persisted, updatePersisted }),
+    [localizedAgents, chats, activity, localizedResults, watchlists, portfolio, profile, persisted]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

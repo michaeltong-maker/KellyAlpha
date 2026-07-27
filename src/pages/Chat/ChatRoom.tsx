@@ -23,7 +23,7 @@ const CANNED = (name: string, prompt: string) => {
 
 export function ChatRoom() {
   const { id = '' } = useParams();
-  const { agents, chats, setChats, setAgents, results, setResults, watchlist } = useApp();
+  const { agents, chats, setChats, setAgents, results, setResults, watchlists } = useApp();
   const t = useT();
   const agent = useMemo(() => agents.find((a) => a.id === id), [agents, id]);
   const [text, setText] = useState('');
@@ -98,7 +98,7 @@ export function ChatRoom() {
       .sort((a, b) => +new Date(b.at) - +new Date(a.at))[0];
     if (recent) return recent;
     // Generate one and persist so future taps reuse it.
-    const fresh = createRunResult(agent, watchlist);
+    const fresh = createRunResult(agent, watchlists.flatMap((l) => l.stocks));
     setResults((rs) => [fresh, ...rs]);
     return fresh;
   };

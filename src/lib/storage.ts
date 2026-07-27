@@ -1,4 +1,6 @@
-import type { Agent, Result } from '../types';
+import type { Agent, Portfolio, Result, Watchlist } from '../types';
+import { SEED_WATCHLISTS } from '../data/seedWatchlist';
+import { SEED_PORTFOLIO } from '../data/seedPortfolio';
 
 const KEY = 'alphawalk:v1';
 
@@ -30,6 +32,8 @@ export interface PersistedState {
   firstDuplicateCelebrated: boolean;
   userAgents: Agent[];
   userResults: Result[];
+  watchlists: Watchlist[];  // multi-list watchlist; first entry (isDefault) is the add target
+  portfolio: Portfolio;     // the user's single holdings portfolio
   hasNewHires: boolean;     // shows a "new" dot on the Chat bottom tab; cleared on first visit
   theme: ThemeMode;         // 'system' follows OS prefers-color-scheme; 'light'/'dark' override
   language: Lang;           // UI language; chat messages also follow this
@@ -48,6 +52,8 @@ const DEFAULT: PersistedState = {
   firstDuplicateCelebrated: false,
   userAgents: [],
   userResults: [],
+  watchlists: SEED_WATCHLISTS,
+  portfolio: SEED_PORTFOLIO,
   hasNewHires: false,
   theme: 'system',
   language: 'en',
@@ -69,6 +75,15 @@ export function loadState(): PersistedState {
     state.userResults = (state.userResults ?? []).filter(
       (r) => !(r.id?.startsWith('manual-') && !r.i18n?.zh),
     );
+    // Watchlists/portfolio arrived after some saves existed — backfill from seed
+    // and guarantee the multi-list invariant: at least one list, exactly one
+    // default. A save with an empty array shouldn't strand the user list-less.
+    if (!Array.isArray(state.watchlists) || state.watchlists.length === 0) {
+      state.watchlists = SEED_WATCHLISTS;
+    } else if (!state.watchlists.some((w) => w.isDefault)) {
+      state.watchlists = state.watchlists.map((w, i) => (i === 0 ? { ...w, isDefault: true } : w));
+    }
+    state.portfolio = state.portfolio ?? SEED_PORTFOLIO;
     return state;
   } catch {
     return { ...DEFAULT };

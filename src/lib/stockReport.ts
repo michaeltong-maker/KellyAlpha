@@ -31,6 +31,33 @@ function ccyFor(m: Market): string {
   return m === 'US' ? '$' : m === 'HK' ? 'HK$' : '¥';
 }
 
+// A deterministic house lean for a ticker when there's no grounded dossier yet
+// (~40% Buy / 40% Hold / 20% Sell). Also embedded into generated dossiers so the
+// badge stays consistent between the trending list and the report card.
+export function recommendationForSymbol(symbol: string): { label: string; tone: 'buy' | 'hold' | 'sell'; conviction: string } {
+  let h = 0;
+  for (let i = 0; i < symbol.length; i++) h = (h * 31 + symbol.charCodeAt(i)) >>> 0;
+  const roll = h % 10;
+  if (roll < 4) return { label: 'BUY', tone: 'buy', conviction: '2. Buy' };
+  if (roll < 8) return { label: 'HOLD', tone: 'hold', conviction: '3. Hold' };
+  return { label: 'SELL', tone: 'sell', conviction: '4. Reduce' };
+}
+
+// Parse the house recommendation from a dossier body ("Overall conviction: `3.
+// Hold`", falling back to the House conviction score). Drives the Buy/Hold/Sell
+// badge on report cards.
+export function recommendationOf(body: string): { label: string; tone: 'buy' | 'hold' | 'sell' } {
+  const conv = body.match(/Overall conviction:\*\*\s*`([^`]+)`/i)?.[1] ?? '';
+  const word = conv.replace(/^\s*\d+\.\s*/, '').trim().toLowerCase();
+  if (/\b(buy|accumulate|add|overweight)\b/.test(word)) return { label: 'BUY', tone: 'buy' };
+  if (/\b(sell|reduce|trim|underweight)\b/.test(word)) return { label: 'SELL', tone: 'sell' };
+  if (word.includes('hold')) return { label: 'HOLD', tone: 'hold' };
+  const score = Number(body.match(/House conviction:\s*\*{0,2}\s*(\d+)\s*\/\s*10/i)?.[1]);
+  if (score >= 7) return { label: 'BUY', tone: 'buy' };
+  if (score && score <= 4) return { label: 'SELL', tone: 'sell' };
+  return { label: 'HOLD', tone: 'hold' };
+}
+
 function filename(symbol: string, when: Date): string {
   const slug = symbol.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
   return `${slug}-equity-research-${when.toISOString().split('T')[0]}.md`;
@@ -288,13 +315,14 @@ export function seedMicronReports(): StockReport[] {
 // ---------------------------------------------------------------------------
 function genericBody(stock: DirectoryStock, ccy: string, price?: number): string {
   const px = price !== undefined ? `${ccy}${price.toFixed(2)}` : 'the current quote';
+  const conviction = recommendationForSymbol(stock.symbol).conviction;
   return `> **Generated dossier.** This is a structural research scaffold for **${stock.name} (${stock.symbol})**, produced on demand from the AlphaWalk equity-research template. Unlike the desk's flagship coverage, it is not yet grounded in live filings — treat the sections below as the framework to fill, not finished analysis. Re-run once primary sources are attached.
 
 ## 1. Investment thesis
 
 State in 2–3 sentences why one would own **${stock.symbol}** now — the suspected mispricing, the return drivers, and the horizon. Everything below should support or challenge it.
 
-- **Overall conviction:** \`3. Hold\` *(placeholder pending grounded analysis)*
+- **Overall conviction:** \`${conviction}\` *(house lean pending grounded analysis)*
 - **House conviction: 5/10.**
 
 ### Six-angle scorecard
